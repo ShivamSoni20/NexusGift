@@ -1,23 +1,24 @@
-// Mocked ShadowWire-style confidential transfer logic for Hackathon
+// Simulated Privacy Layer for Hackathon Demo
 export interface PrivatePaymentProof {
   commitment: string;
   proof: string;
 }
 
 export async function generatePrivatePayment(amount: number): Promise<PrivatePaymentProof> {
-  // Simulate client-side ZK proof generation
-  console.log(`Generating ZK proof for ${amount} SOL...`);
+  // SIMULATED: Virtual shielded transaction
+  console.log(`[SIMULATED PRIVACY] Generating ZK proof for ${amount} token transfer...`);
   await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  const commitment = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-  const proof = "zk_proof_" + Math.random().toString(36).substring(2, 10);
-  
+
+  // Deterministic for demo stability
+  const commitment = "shielded_" + Math.random().toString(36).substring(2, 10);
+  const proof = "zk_proof_certified";
+
   return { commitment, proof };
 }
 
 export async function verifyPrivatePayment(proof: PrivatePaymentProof): Promise<boolean> {
-  // Simulate backend verification of the proof
-  console.log(`Verifying proof for commitment: ${proof.commitment}`);
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return proof.proof.startsWith("zk_proof_");
+  // SIMULATED: Backend verification of the zero-knowledge proof
+  console.log(`[SIMULATED PRIVACY] Verifying proof for commitment: ${proof.commitment}`);
+  await new Promise(resolve => setTimeout(resolve, 800));
+  return proof.proof === "zk_proof_certified";
 }
