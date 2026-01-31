@@ -3,6 +3,7 @@
 import { verifyPrivatePayment, PrivatePaymentProof } from "@/lib/privacy";
 import { issueVirtualCard } from "@/lib/issuance";
 import { issueStarpayCard } from "@/lib/starpay-production";
+import { verifyShadowWireProofInternal } from "@/lib/shadowwire-verify";
 
 /**
  * DUAL-MODE ACTIONS
@@ -101,30 +102,20 @@ export async function createGiftAction(formData: {
 
     const shadowProof = proof as ShadowWireProof;
 
-    // Step 1: Verify ShadowWire proof on backend
-    const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/verify-shadowwire-proof`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        commitment: shadowProof.commitment,
-        proof: shadowProof.proof,
-        nullifier: shadowProof.nullifier,
-        txSignature: shadowProof.txSignature,
-        tokenSymbol: formData.tokenSymbol
-      })
+    // Step 1: Verify ShadowWire proof on backend (Direct call, no fetch needed)
+    const verifyResult = await verifyShadowWireProofInternal({
+      commitment: shadowProof.commitment,
+      proof: shadowProof.proof,
+      nullifier: shadowProof.nullifier,
+      txSignature: shadowProof.txSignature,
+      tokenSymbol: formData.tokenSymbol
     });
 
-    if (!verifyResponse.ok) {
-      const error = await verifyResponse.json();
-      throw new Error(`Proof verification failed: ${error.message}`);
-    }
-
-    const verifyResult = await verifyResponse.json();
     if (!verifyResult.verified) {
-      throw new Error('ShadowWire proof verification failed');
+      throw new Error(`ShadowWire proof verification failed: ${verifyResult.message}`);
     }
 
-    console.log('[PRODUCTION] ✅ ShadowWire proof verified');
+    console.log('[PRODUCTION] ✅ ShadowWire proof verified internally');
 
     // Step 2: Issue REAL Starpay card (only after verification succeeds)
     let cardDetails;
