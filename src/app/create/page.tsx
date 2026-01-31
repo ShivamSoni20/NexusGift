@@ -45,6 +45,7 @@ export default function CreateGiftPage() {
     const [mounted, setMounted] = useState(false);
     const [usingDemoIdentity, setUsingDemoIdentity] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState<string>('');
+    const [shortUrl, setShortUrl] = useState<string | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -160,6 +161,18 @@ export default function CreateGiftPage() {
                 setFinalStatus(result.status!);
                 setPaymentStatus('');
                 setStep(4);
+
+                // Shorten the URL automatically for better UX
+                try {
+                    const fullUrl = `${window.location.origin}/claim/${result.claimToken}`;
+                    const response = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(fullUrl)}`);
+                    if (response.ok) {
+                        const short = await response.text();
+                        setShortUrl(short);
+                    }
+                } catch (e) {
+                    console.error('URL shortening failed:', e);
+                }
             } else {
                 // If it's a signature mismatch, specifically suggest RETRY
                 if (result.error?.includes('signature malformed')) {
@@ -535,21 +548,31 @@ export default function CreateGiftPage() {
                                     </div>
 
                                     <div className="p-10 bg-ash-900 border border-white/5 space-y-8 text-left">
-                                        <div className="space-y-2">
-                                            <label className="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em]">Generated Claim Link</label>
-                                            <div className="text-[10px] font-mono break-all text-gold bg-black/40 p-6 border border-white/5">
-                                                {mounted ? window.location.origin : ''}/claim/{claimToken}
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[9px] font-bold text-white/20 uppercase tracking-[0.4em]">
+                                                    {shortUrl ? "Shortened Claim Link" : "Generated Claim Link"}
+                                                </label>
+                                                {!shortUrl && (
+                                                    <span className="text-[8px] text-gold/40 animate-pulse tracking-widest uppercase">Shortening...</span>
+                                                )}
+                                            </div>
+                                            <div className="text-[10px] font-mono break-all text-gold bg-black/40 p-6 border border-white/5 flex items-center justify-between group">
+                                                <span className="flex-1">
+                                                    {shortUrl || (mounted ? `${window.location.origin}/claim/${claimToken}` : '')}
+                                                </span>
                                             </div>
                                         </div>
 
                                         <button
                                             onClick={() => {
-                                                navigator.clipboard.writeText(`${window.location.origin}/claim/${claimToken}`);
+                                                const linkToCopy = shortUrl || `${window.location.origin}/claim/${claimToken}`;
+                                                navigator.clipboard.writeText(linkToCopy);
                                                 alert("Link copied to clipboard");
                                             }}
                                             className="text-[9px] font-bold text-white/40 hover:text-gold uppercase tracking-[0.4em] transition-colors"
                                         >
-                                            COPY LINK TO CLIPBOARD
+                                            COPY {shortUrl ? "SHORT LINK" : "FULL LINK"} TO CLIPBOARD
                                         </button>
                                     </div>
 
