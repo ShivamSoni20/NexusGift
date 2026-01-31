@@ -99,7 +99,8 @@ export default function CreateGiftPage() {
                 }
 
                 // Create a temporary escrow wallet to receive the gift funds
-                const escrowPubkey = new PublicKey('GiftEscrowDevnet11111111111111111111111111111');
+                // This is a valid Solana "System Program" address for the devnet simulation
+                const escrowPubkey = new PublicKey('11111111111111111111111111111111');
 
                 setPaymentStatus('Initiating confidential transfer via ShadowWire...');
 
