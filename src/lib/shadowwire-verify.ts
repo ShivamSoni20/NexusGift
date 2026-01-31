@@ -1,4 +1,4 @@
-import { Connection } from '@solana/web3.js';
+import { Connection, ParsedTransactionWithMeta } from '@solana/web3.js';
 
 /**
  * CORE SHADOWWIRE PROOF VERIFICATION LOGIC
@@ -18,6 +18,38 @@ export interface VerificationResult {
     message: string;
 }
 
+/**
+ * Robust transaction confirmation checker with exponential backoff
+ */
+async function pollForTransaction(
+    connection: Connection,
+    signature: string,
+    maxRetries = 5
+): Promise<ParsedTransactionWithMeta | null> {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            console.log(`[VERIFICATION] Polling for tx ${signature} (Attempt ${i + 1}/${maxRetries})...`);
+
+            const tx = await connection.getParsedTransaction(signature, {
+                maxSupportedTransactionVersion: 0,
+                commitment: 'confirmed'
+            });
+
+            if (tx) {
+                console.log(`[VERIFICATION] Found tx at slot ${tx.slot}. Status: ${tx.meta?.err ? 'FAILED' : 'SUCCESS'}. BlockTime: ${tx.blockTime}`);
+                return tx;
+            }
+        } catch (e) {
+            console.warn(`[VERIFICATION] Poll attempt ${i + 1} failed:`, e);
+        }
+
+        // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+        const waitTime = Math.pow(2, i) * 1000;
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    return null;
+}
+
 export async function verifyShadowWireProofInternal(
     params: VerificationParams
 ): Promise<VerificationResult> {
@@ -28,33 +60,33 @@ export async function verifyShadowWireProofInternal(
         return { verified: false, message: 'Missing required proof fields' };
     }
 
-    console.log('[VERIFICATION] Processing proof:', {
-        commitment: commitment.slice(0, 20) + '...',
-        txSignature: txSignature.slice(0, 16) + '...',
-        tokenSymbol
-    });
+    // 2. Unify RPC Endpoint
+    const endpoint = process.env.NEXT_PUBLIC_SHADOWWIRE_ENDPOINT ||
+        process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT ||
+        'https://api.devnet.solana.com';
 
-    // 2. Initialize Solana connection
-    const endpoint = process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT || 'https://api.devnet.solana.com';
+    console.log('[VERIFICATION] Using RPC Endpoint:', endpoint);
+    console.log('[VERIFICATION] Processing proof for tx:', txSignature);
+
     const connection = new Connection(endpoint, 'confirmed');
 
-    // 3. Verify transaction exists and is confirmed
+    // 3. Verify transaction exists and is confirmed with retries
     try {
-        const txInfo = await connection.getTransaction(txSignature, {
-            maxSupportedTransactionVersion: 0
-        });
+        const txInfo = await pollForTransaction(connection, txSignature);
 
         if (!txInfo) {
-            console.warn('[VERIFICATION] Transaction not found on-chain:', txSignature);
-            // In development/test mode, we might allow non-existent transactions if they follow our mock pattern
+            console.warn('[VERIFICATION] Transaction not found on-chain after retries:', txSignature);
             if (process.env.NODE_ENV === 'production') {
-                return { verified: false, message: 'Transaction not found on Solana Devnet' };
+                return {
+                    verified: false,
+                    message: 'Devnet transaction confirmation delayed. Please try again in a moment.'
+                };
             }
         } else if (txInfo.meta?.err) {
             console.error('[VERIFICATION] Transaction failed on-chain');
             return { verified: false, message: 'Transaction failed on-chain' };
         } else {
-            console.log('[VERIFICATION] Transaction confirmed on-chain');
+            console.log('[VERIFICATION] Transaction confirmed on-chain at slot', txInfo.slot);
         }
     } catch (txError) {
         console.error('[VERIFICATION] Error checking transaction:', txError);
