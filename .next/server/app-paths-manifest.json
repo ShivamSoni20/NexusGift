@@ -1,6 +1,0 @@
-{
-  "/not-found": "app/not-found.js",
-  "/page": "app/page.js",
-  "/claim/[token]/page": "app/claim/[token]/page.js",
-  "/create/page": "app/create/page.js"
-}
