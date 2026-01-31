@@ -28,13 +28,20 @@ export interface VerificationResult {
 /**
  * Validates a Solana Transaction Signature (64 bytes, Base58)
  */
-function isValidSolanaSignature(signature: any): boolean {
-    if (typeof signature !== 'string') return false;
+function isValidSolanaSignature(txSignature: any): boolean {
+    console.log("[BACKEND] txSignature:", txSignature, typeof txSignature, txSignature?.length);
+
+    if (typeof txSignature !== 'string') return false;
+
+    // Strict Base58 regex
+    const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/;
+    if (!base58Regex.test(txSignature)) {
+        return false;
+    }
 
     try {
-        const decoded = bs58.decode(signature);
-        // Solana signatures are exactly 64 bytes
-        return decoded.length === 64 && signature.length >= 85 && signature.length <= 90;
+        const decoded = bs58.decode(txSignature);
+        return decoded.length === 64 && txSignature.length >= 85 && txSignature.length <= 90;
     } catch (e) {
         return false;
     }
@@ -50,16 +57,9 @@ export async function verifyShadowWireProofInternal(
         return { verified: false, message: 'Missing required proof fields' };
     }
 
-    // 2. Validate Transaction Signature format (Base58 & length check)
+    // 2. Validate Transaction Signature format
     if (!isValidSolanaSignature(txSignature)) {
-        console.error('[VERIFICATION] Invalid signature format:', {
-            len: txSignature?.length,
-            type: typeof txSignature
-        });
-        return {
-            verified: false,
-            message: 'Transaction signature malformed. Please retry funding.'
-        };
+        throw new Error("Malformed transaction signature");
     }
 
     console.log('[VERIFICATION] Proof-First Model:', {

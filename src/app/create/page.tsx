@@ -117,7 +117,21 @@ export default function CreateGiftPage() {
                 }
 
                 setPaymentStatus('Transaction confirmed by wallet. Network indexing may be delayed.');
-                proof = transferResult.proof!;
+
+                // CRITICAL: Explicitly extract signature EXACTLY as a string
+                // No full objects, no metadata, just the Base58 string
+                const cleanSignature: string = transferResult.signature?.toString() || '';
+                console.log("[CLIENT] Sending txSignature:", cleanSignature, cleanSignature.length);
+
+                proof = {
+                    commitment: transferResult.proof!.commitment,
+                    proof: transferResult.proof!.proof,
+                    nullifier: transferResult.proof!.nullifier,
+                    txSignature: cleanSignature,
+                    slot: transferResult.proof!.slot,
+                    confirmationStatus: "confirmed",
+                    isReal: true
+                };
             }
 
             const scheduledAt = formData.isScheduled
@@ -126,6 +140,7 @@ export default function CreateGiftPage() {
 
             setPaymentStatus(mode === 'PRODUCTION' ? 'Issuing real Starpay card...' : 'Generating gift...');
 
+            // DOUBLE SUBMISSION GUARD: handleSubmit is already disabled via isSubmitting
             const result = await createGiftAction({
                 recipientEmail: formData.recipientEmail,
                 amount: formData.amount,
