@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GiftCardPreview } from '@/components/GiftCardPreview';
 import { generatePrivatePayment } from '@/lib/privacy';
+import { executeConfidentialTransfer } from '@/lib/shadowwire';
+import { checkBalance } from '@/lib/solana-payment';
 import { createGiftAction } from '@/app/actions';
+import { useMode } from '@/contexts/ModeContext';
+import { useConnection } from '@solana/wallet-adapter-react';
 import {
     CreditCard,
     Mail,
@@ -17,11 +21,13 @@ import {
     Zap,
     ArrowRight,
     Lock,
-    UserCheck
+    UserCheck,
+    Shield
 } from 'lucide-react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { PublicKey } from '@solana/web3.js';
 
 const TOKENS = [
     { symbol: 'USDC', name: 'USD Coin', price: 1, icon: DollarSign },
@@ -29,13 +35,16 @@ const TOKENS = [
 ];
 
 export default function CreateGiftPage() {
-    const { connected, publicKey } = useWallet();
+    const { connected, publicKey, signTransaction } = useWallet();
+    const { connection } = useConnection();
+    const { mode } = useMode();
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [claimToken, setClaimToken] = useState<string | null>(null);
     const [finalStatus, setFinalStatus] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [usingDemoIdentity, setUsingDemoIdentity] = useState(false);
+    const [paymentStatus, setPaymentStatus] = useState<string>('');
 
     useEffect(() => {
         setMounted(true);
@@ -60,11 +69,61 @@ export default function CreateGiftPage() {
 
     const handleSubmit = async () => {
         setIsSubmitting(true);
+        setPaymentStatus('');
+
         try {
-            const proof = await generatePrivatePayment(formData.amount);
+            let proof;
+
+            // DEMO MODE: Use mock privacy layer
+            if (mode === 'DEMO') {
+                setPaymentStatus('Generating mock privacy proof...');
+                proof = await generatePrivatePayment(formData.amount);
+            }
+            // PRODUCTION MODE: Use real ShadowWire confidential transfer
+            else {
+                if (!connected || !publicKey || !signTransaction) {
+                    alert('Please connect your wallet to use Production mode');
+                    setIsSubmitting(false);
+                    return;
+                }
+
+                setPaymentStatus('Checking account balance...');
+                const balanceCheck = await checkBalance(
+                    connection,
+                    publicKey,
+                    formData.tokenSymbol as 'SOL' | 'USDC'
+                );
+
+                if (!balanceCheck.hasEnough || balanceCheck.balance < formData.amount) {
+                    throw new Error(`Insufficient ${formData.tokenSymbol}. You have ${balanceCheck.balance.toFixed(4)}, but need ${formData.amount}.`);
+                }
+
+                // Create a temporary escrow wallet to receive the gift funds
+                const escrowPubkey = new PublicKey('GiftEscrowDevnet11111111111111111111111111111');
+
+                setPaymentStatus('Initiating confidential transfer via ShadowWire...');
+
+                const transferResult = await executeConfidentialTransfer(
+                    connection,
+                    { connected, publicKey, signTransaction } as any,
+                    escrowPubkey,
+                    formData.amount,
+                    formData.tokenSymbol as 'SOL' | 'USDC'
+                );
+
+                if (!transferResult.success) {
+                    throw new Error(transferResult.error || 'Confidential transfer failed');
+                }
+
+                setPaymentStatus('Transfer confirmed. Verifying proof...');
+                proof = transferResult.proof!;
+            }
+
             const scheduledAt = formData.isScheduled
                 ? new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toISOString()
                 : undefined;
+
+            setPaymentStatus(mode === 'PRODUCTION' ? 'Issuing real Starpay card...' : 'Generating gift...');
 
             const result = await createGiftAction({
                 recipientEmail: formData.recipientEmail,
@@ -74,19 +133,31 @@ export default function CreateGiftPage() {
                 message: formData.message,
                 design: formData.design,
                 scheduledAt,
-                proof
+                proof,
+                mode
             });
 
             if (result.success) {
                 setClaimToken(result.claimToken!);
                 setFinalStatus(result.status!);
+                setPaymentStatus('');
                 setStep(4);
             } else {
-                alert("Error: " + result.error);
+                if (result.fallbackToDemo && mode === 'PRODUCTION') {
+                    const shouldFallback = confirm(
+                        `Production mode failed: ${result.error}\n\nWould you like to continue in Demo mode instead?`
+                    );
+                    if (shouldFallback) {
+                        window.location.reload(); // Reload to reset to demo
+                    }
+                } else {
+                    alert("Error: " + result.error);
+                }
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            alert("Something went wrong");
+            setPaymentStatus('');
+            alert(err.message || "Something went wrong");
         } finally {
             setIsSubmitting(false);
         }
@@ -364,31 +435,47 @@ export default function CreateGiftPage() {
                                         )}
 
                                         {(connected || usingDemoIdentity) && (
-                                            <button
-                                                onClick={handleSubmit}
-                                                disabled={isSubmitting}
-                                                className="group relative w-full py-10 bg-white text-ash-950 font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-gold transition-all duration-500 overflow-hidden disabled:opacity-30"
-                                            >
-                                                <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                                                <div className="relative z-10 flex flex-col items-center gap-2">
-                                                    <span className="flex items-center gap-3">
-                                                        {isSubmitting ? (
-                                                            <>
-                                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                                                Broadcasting Proof...
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <ShieldCheck className="w-4 h-4" />
-                                                                Authorize & Create Gift
-                                                            </>
-                                                        )}
-                                                    </span>
-                                                    <span className="text-[8px] opacity-40">
-                                                        {connected ? "SECURE TRANSACTION SIGNING" : "SIMULATING CONFIDENTIAL TRANSFER"}
-                                                    </span>
-                                                </div>
-                                            </button>
+                                            <>
+                                                {/* Payment Status Indicator */}
+                                                {paymentStatus && (
+                                                    <div className="mb-6 p-4 bg-gold/10 border border-gold/20 rounded-none">
+                                                        <div className="flex items-center gap-3 text-gold">
+                                                            <Shield className="w-4 h-4 animate-pulse" />
+                                                            <span className="text-xs font-bold uppercase tracking-wider">
+                                                                {paymentStatus}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <button
+                                                    onClick={handleSubmit}
+                                                    disabled={isSubmitting}
+                                                    className="group relative w-full py-10 bg-white text-ash-950 font-bold uppercase tracking-[0.4em] text-[10px] hover:bg-gold transition-all duration-500 overflow-hidden disabled:opacity-30"
+                                                >
+                                                    <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                                                    <div className="relative z-10 flex flex-col items-center gap-2">
+                                                        <span className="flex items-center gap-3">
+                                                            {isSubmitting ? (
+                                                                <>
+                                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                                    {mode === 'PRODUCTION' ? 'Processing Transfer...' : 'Broadcasting Proof...'}
+                                                                </>
+                                                            ) : (
+                                                                <>
+                                                                    {mode === 'PRODUCTION' ? <Shield className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
+                                                                    {mode === 'PRODUCTION' ? 'Fund via ShadowWire' : 'Authorize & Create Gift'}
+                                                                </>
+                                                            )}
+                                                        </span>
+                                                        <span className="text-[8px] opacity-40">
+                                                            {mode === 'PRODUCTION' && !isSubmitting
+                                                                ? "Confidential transfer • Amount hidden"
+                                                                : (connected ? "SECURE TRANSACTION SIGNING" : "SIMULATING CONFIDENTIAL TRANSFER")}
+                                                        </span>
+                                                    </div>
+                                                </button>
+                                            </>
                                         )}
                                     </div>
                                 </motion.div>

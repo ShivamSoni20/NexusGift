@@ -2,16 +2,22 @@
 
 import { verifyPrivatePayment, PrivatePaymentProof } from "@/lib/privacy";
 import { issueVirtualCard } from "@/lib/issuance";
+import { issueStarpayCard } from "@/lib/starpay-production";
 
 /**
- * STATELESS ACTIONS FOR HACKATHON DEMO
- * All state is encoded into the claim token itself.
- * No database required.
+ * DUAL-MODE ACTIONS
+ * Supports both Demo (stateless mock) and Production (real ShadowWire + Starpay)
  */
 
+interface ShadowWireProof {
+  commitment: string;
+  proof: string;
+  nullifier: string;
+  txSignature: string;
+  isReal: boolean;
+}
+
 function encodeGiftState(data: any) {
-  // In a real app, this would be a signed JWT.
-  // For the demo, we use Base64 encoding.
   const json = JSON.stringify(data);
   return Buffer.from(json).toString('base64url');
 }
@@ -25,6 +31,9 @@ function decodeGiftState(token: string) {
   }
 }
 
+/**
+ * Create gift - supports both Demo and Production modes
+ */
 export async function createGiftAction(formData: {
   recipientEmail: string;
   amount: number;
@@ -33,41 +42,129 @@ export async function createGiftAction(formData: {
   message: string;
   design: string;
   scheduledAt?: string;
-  proof: PrivatePaymentProof;
+  proof: PrivatePaymentProof | ShadowWireProof;
+  mode: 'DEMO' | 'PRODUCTION';
 }) {
   try {
-    // 1. Verify Private Payment Proof (Simulated)
-    const isValid = await verifyPrivatePayment(formData.proof);
-    if (!isValid) throw new Error("Invalid payment proof");
+    const { mode, proof } = formData;
 
-    // 2. Issue Virtual Card via Mock Starpay
-    const cardDetails = await issueVirtualCard(formData.usdEquivalent);
+    // DEMO MODE: Use mock verification
+    if (mode === 'DEMO') {
+      console.log('[DEMO MODE] Using simulated privacy layer');
 
-    // 3. Determine Initial Status
+      const isValid = await verifyPrivatePayment(proof as PrivatePaymentProof);
+      if (!isValid) throw new Error("Invalid payment proof");
+
+      const cardDetails = await issueVirtualCard(formData.usdEquivalent);
+
+      const now = new Date();
+      const isScheduled = formData.scheduledAt && new Date(formData.scheduledAt) > now;
+      const finalStatus = isScheduled ? 'WAITING_FOR_DELIVERY' : 'DELIVERED';
+
+      const state = {
+        version: "demo-v1",
+        mode: "DEMO",
+        commitment_hash: (proof as PrivatePaymentProof).commitment,
+        encrypted_metadata: {
+          recipientEmail: formData.recipientEmail,
+          message: formData.message,
+        },
+        design: formData.design,
+        token_symbol: formData.tokenSymbol,
+        token_amount: formData.amount,
+        usd_equivalent: formData.usdEquivalent,
+        scheduled_at: formData.scheduledAt,
+        status: finalStatus,
+        is_mock: true,
+        card: {
+          last_four: cardDetails.lastFour,
+          expiry: cardDetails.expiry,
+          full_details: JSON.stringify({
+            number: cardDetails.cardNumber,
+            cvv: cardDetails.cvv
+          })
+        }
+      };
+
+      const claimToken = encodeGiftState(state);
+
+      return {
+        success: true,
+        claimToken,
+        status: finalStatus,
+        message: "Gift created successfully (Demo Mode: Stateless)"
+      };
+    }
+
+    // PRODUCTION MODE: Use real ShadowWire + Starpay
+    console.log('[PRODUCTION MODE] Using real ShadowWire privacy layer');
+
+    const shadowProof = proof as ShadowWireProof;
+
+    // Step 1: Verify ShadowWire proof on backend
+    const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/verify-shadowwire-proof`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        commitment: shadowProof.commitment,
+        proof: shadowProof.proof,
+        nullifier: shadowProof.nullifier,
+        txSignature: shadowProof.txSignature,
+        tokenSymbol: formData.tokenSymbol
+      })
+    });
+
+    if (!verifyResponse.ok) {
+      const error = await verifyResponse.json();
+      throw new Error(`Proof verification failed: ${error.message}`);
+    }
+
+    const verifyResult = await verifyResponse.json();
+    if (!verifyResult.verified) {
+      throw new Error('ShadowWire proof verification failed');
+    }
+
+    console.log('[PRODUCTION] ✅ ShadowWire proof verified');
+
+    // Step 2: Issue REAL Starpay card (only after verification succeeds)
+    let cardDetails;
+    try {
+      cardDetails = await issueStarpayCard(
+        formData.usdEquivalent,
+        formData.recipientEmail
+      );
+      console.log('[PRODUCTION] ✅ Starpay card issued');
+    } catch (starpayError: any) {
+      console.error('[PRODUCTION] Starpay issuance failed:', starpayError);
+      throw new Error(`Card issuance failed: ${starpayError.message}`);
+    }
+
+    // Step 3: Create claim token with production data
     const now = new Date();
     const isScheduled = formData.scheduledAt && new Date(formData.scheduledAt) > now;
     const finalStatus = isScheduled ? 'WAITING_FOR_DELIVERY' : 'DELIVERED';
 
-    // 4. Encode EVERYTHING into the claim token
-    // This makes the project completely stateless
     const state = {
-      version: "demo-v1",
-      commitment_hash: formData.proof.commitment,
+      version: "production-v1",
+      mode: "PRODUCTION",
+      commitment_hash: shadowProof.commitment,
+      tx_signature: shadowProof.txSignature,
       encrypted_metadata: {
         recipientEmail: formData.recipientEmail,
         message: formData.message,
       },
       design: formData.design,
       token_symbol: formData.tokenSymbol,
-      token_amount: formData.amount,
       usd_equivalent: formData.usdEquivalent,
       scheduled_at: formData.scheduledAt,
       status: finalStatus,
-      is_mock: true,
+      is_mock: false,
       card: {
+        id: cardDetails.id,
         last_four: cardDetails.lastFour,
         expiry: cardDetails.expiry,
-        // In demo mode, we "encrypt" (encode) the full details into the token
+        balance: cardDetails.balance,
+        // Encrypt full details for security
         full_details: JSON.stringify({
           number: cardDetails.cardNumber,
           cvv: cardDetails.cvv
@@ -81,11 +178,17 @@ export async function createGiftAction(formData: {
       success: true,
       claimToken,
       status: finalStatus,
-      message: "Gift created successfully (Demo Mode: Stateless)"
+      txSignature: shadowProof.txSignature,
+      message: "Gift created successfully (Production Mode: Real Transfer)"
     };
+
   } catch (error: any) {
     console.error("Error creating gift:", error);
-    return { success: false, error: error.message };
+    return {
+      success: false,
+      error: error.message,
+      fallbackToDemo: formData.mode === 'PRODUCTION' // Suggest fallback if production fails
+    };
   }
 }
 
@@ -94,7 +197,6 @@ export async function getGiftByToken(token: string) {
     const gift = decodeGiftState(token);
     if (!gift) throw new Error("Gift not found or token corrupted");
 
-    // Format for frontend compatibility
     const formattedGift = {
       ...gift,
       cards: [
@@ -117,8 +219,6 @@ export async function claimGiftAction(token: string) {
     const gift = decodeGiftState(token);
     if (!gift) throw new Error("Invalid token");
 
-    // Since we are stateless, "claiming" just returns the gift with a CLAIMED status
-    // In a real app, the database prevents double claims.
     const updatedGift = {
       ...gift,
       status: 'CLAIMED',
