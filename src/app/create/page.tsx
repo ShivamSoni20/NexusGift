@@ -116,7 +116,7 @@ export default function CreateGiftPage() {
                     throw new Error(transferResult.error || 'Confidential transfer failed');
                 }
 
-                setPaymentStatus('Transfer confirmed. Verifying transaction on Solana...');
+                setPaymentStatus('Transaction confirmed by wallet. Network indexing may be delayed.');
                 proof = transferResult.proof!;
             }
 

@@ -15,6 +15,8 @@ interface ShadowWireProof {
   proof: string;
   nullifier: string;
   txSignature: string;
+  slot?: number;
+  confirmationStatus?: string;
   isReal: boolean;
 }
 
@@ -102,12 +104,14 @@ export async function createGiftAction(formData: {
 
     const shadowProof = proof as ShadowWireProof;
 
-    // Step 1: Verify ShadowWire proof on backend (Direct call, no fetch needed)
+    // Step 1: Verify ShadowWire proof internally (Direct call, no fetch needed)
     const verifyResult = await verifyShadowWireProofInternal({
       commitment: shadowProof.commitment,
       proof: shadowProof.proof,
       nullifier: shadowProof.nullifier,
       txSignature: shadowProof.txSignature,
+      slot: shadowProof.slot,
+      confirmationStatus: shadowProof.confirmationStatus,
       tokenSymbol: formData.tokenSymbol
     });
 
