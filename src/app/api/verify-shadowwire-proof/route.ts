@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyShadowWireProofInternal } from '@/lib/shadowwire-verify';
 
+// REQUIREMENT 1: Force Node.js runtime for Starpay compatibility
+export const runtime = 'nodejs';
+
 export async function POST(request: NextRequest) {
     try {
         // REQUIREMENT 1: Trace raw body
