@@ -21,7 +21,7 @@ NexusGift is a high-end, **stateless privacy protocol** built for the Solana blo
 ## 🛠️ The Technology Stack
 
 ### Core Protocol
-- **Solana Ecosystem**: High-speed, low-cost settlement layer.
+- **Solana Ecosystem**: High-speed settlement for SOL and USDC assets.
 - **ShadowWire**: Zero-knowledge proof privacy layer for shielded transfers.
 - **Starpay**: Gateway for registration-free virtual card issuance.
 
@@ -50,13 +50,36 @@ nexus-gift/
 
 ---
 
-## 🧪 Simulation & Demo Mode
+## 🎭 Dual-Mode Architecture
 
-NexusGift features a robust **Stateless Demo Mode** designed for the most reliable jury walkthrough possible:
+NexusGift operates in **two distinct modes** to serve both demonstration and production use cases:
 
-1. **Protocol Simulation**: The `DemoWalkthrough` component visually breaks down the ZK-proof generation and card issuance sequence.
-2. **Mock Gateway**: Simulated Starpay issuance providing deterministic (but realistic) virtual card details.
-3. **Wallet Optionality**: The app detects `Phantom` or `Solflare` via the Wallet Standard but allows for a **Demo Fallback** to ensure the flow never breaks due to hardware/extension issues.
+### 🎪 Demo Mode (Default)
+Perfect for hackathons, presentations, and testing without real funds:
+- **Mocked Payments**: Simulated SOL/USDC transfers (no blockchain interaction)
+- **Simulated Privacy**: Mock ZK-proof generation for demonstration
+- **Virtual Cards**: Realistic-looking but non-functional card credentials
+- **Zero Setup**: Works immediately without API keys or wallet funds
+- **Safe**: No risk of accidental real transactions
+
+### 🚀 Production Mode
+Real Solana Devnet integration for actual use:
+- **Real Payments**: Actual SOL and USDC transfers on Solana Devnet
+- **ShadowWire Privacy**: True zero-knowledge proofs for confidential transfers
+- **Starpay Cards**: Real, spendable virtual Visa/Mastercard credentials
+- **Wallet Required**: Must connect Phantom/Solflare with sufficient balance
+- **API Keys**: Requires Starpay API key for card issuance
+
+### Mode Toggle
+Users can switch between modes via the **navbar toggle button**:
+- **Demo** (Gold badge): Simulation mode active
+- **Live** (Green badge): Production mode with real transactions
+
+The app automatically falls back to Demo mode if:
+- API keys are missing
+- Wallet is not connected (in Production mode)
+- Insufficient balance detected
+- Any production service fails
 
 ---
 
@@ -80,11 +103,26 @@ NexusGift features a robust **Stateless Demo Mode** designed for the most reliab
 
 Open [http://localhost:3000](http://localhost:3000) to begin the transfer sequence.
 
+4. **Configure Production Mode** (Optional):
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Edit `.env.local` and add your API keys:
+   ```env
+   NEXT_PUBLIC_STARPAY_API_KEY=your_starpay_key_here
+   NEXT_PUBLIC_SHADOWWIRE_ENABLED=true
+   ```
+   
+   Without these keys, the app runs in Demo mode (fully functional for testing).
+
 ---
 
 ## ⚖️ Disclaimer
 
-*NexusGift is currently in **Hackathon Demo Mode**. All financial transactions and issuance gates are currently simulated via a stateless mock engine. No actual ZK-circuits are finalized for production use.*
+**Demo Mode**: All transactions are simulated. No real funds are transferred, and virtual cards are non-functional placeholders.
+
+**Production Mode**: Uses real Solana Devnet. While Devnet tokens have no monetary value, this mode demonstrates production-ready integration with ShadowWire privacy and Starpay card issuance APIs.
 
 ---
 

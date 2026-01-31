@@ -1,5 +1,36 @@
 {
-  "node": {},
+  "node": {
+    "26d1f3d1d4db2d189f684c5c0ffb750a07c3158d": {
+      "workers": {
+        "app/create/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22D%3A%5C%5CGihtub%20Main%5C%5Cnexus-gift%5C%5Csrc%5C%5Capp%5C%5Cactions.ts%22%2C%5B%22claimGiftAction%22%2C%22createGiftAction%22%2C%22getGiftByToken%22%5D%5D%5D&__client_imported__=true!",
+        "app/claim/[token]/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22D%3A%5C%5CGihtub%20Main%5C%5Cnexus-gift%5C%5Csrc%5C%5Capp%5C%5Cactions.ts%22%2C%5B%22claimGiftAction%22%2C%22createGiftAction%22%2C%22getGiftByToken%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/create/page": "action-browser",
+        "app/claim/[token]/page": "action-browser"
+      }
+    },
+    "c988cb0770211f1cda93c44e5953f60564a3c3ed": {
+      "workers": {
+        "app/create/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22D%3A%5C%5CGihtub%20Main%5C%5Cnexus-gift%5C%5Csrc%5C%5Capp%5C%5Cactions.ts%22%2C%5B%22claimGiftAction%22%2C%22createGiftAction%22%2C%22getGiftByToken%22%5D%5D%5D&__client_imported__=true!",
+        "app/claim/[token]/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22D%3A%5C%5CGihtub%20Main%5C%5Cnexus-gift%5C%5Csrc%5C%5Capp%5C%5Cactions.ts%22%2C%5B%22claimGiftAction%22%2C%22createGiftAction%22%2C%22getGiftByToken%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/create/page": "action-browser",
+        "app/claim/[token]/page": "action-browser"
+      }
+    },
+    "e9094d2f05c57680d713d3c96dced2b7f6585e23": {
+      "workers": {
+        "app/create/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22D%3A%5C%5CGihtub%20Main%5C%5Cnexus-gift%5C%5Csrc%5C%5Capp%5C%5Cactions.ts%22%2C%5B%22claimGiftAction%22%2C%22createGiftAction%22%2C%22getGiftByToken%22%5D%5D%5D&__client_imported__=true!",
+        "app/claim/[token]/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22D%3A%5C%5CGihtub%20Main%5C%5Cnexus-gift%5C%5Csrc%5C%5Capp%5C%5Cactions.ts%22%2C%5B%22claimGiftAction%22%2C%22createGiftAction%22%2C%22getGiftByToken%22%5D%5D%5D&__client_imported__=true!"
+      },
+      "layer": {
+        "app/create/page": "action-browser",
+        "app/claim/[token]/page": "action-browser"
+      }
+    }
+  },
   "edge": {},
-  "encryptionKey": "gAfoZ86t/SvhsTiDDKCZJg036BtvtOfBHgjAs5y7GTg="
+  "encryptionKey": "JbiP0b57jFDStKnuDAwH544IzpaCGkzJtqVgPjAqQok="
 }

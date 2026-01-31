@@ -11,7 +11,6 @@ import {
     Send,
     DollarSign,
     Wallet,
-    Sparkles,
     CheckCircle2,
     Loader2,
     ArrowRight,
@@ -127,10 +126,10 @@ export function DemoWalkthrough({ isOpen, onClose }: { isOpen: boolean; onClose:
                             {/* Step Visualization Area */}
                             <div className="w-full max-w-md bg-ash-900/50 border border-white/5 p-10 relative overflow-hidden h-64 flex items-center justify-center">
                                 {currentStep === 0 && (
-                                    <div className="grid grid-cols-3 gap-0 w-full">
-                                        {[DollarSign, Wallet, Sparkles].map((Icon, i) => (
-                                            <div key={i} className={`p-6 border flex justify-center transition-all ${i === 1 ? 'bg-gold border-gold text-ash-950' : 'bg-black/20 border-white/5 text-white/20'}`}>
-                                                <Icon className="w-6 h-6" />
+                                    <div className="grid grid-cols-2 gap-px bg-white/5 border border-white/5 w-full">
+                                        {[DollarSign, Wallet].map((Icon, i) => (
+                                            <div key={i} className={`p-8 flex justify-center transition-all ${i === 1 ? 'bg-gold text-ash-950' : 'bg-black/20 text-white/20'}`}>
+                                                <Icon className="w-8 h-8" />
                                             </div>
                                         ))}
                                     </div>

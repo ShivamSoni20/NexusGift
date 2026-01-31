@@ -1,4 +1,4 @@
-// File: C:\Users\shivamsoni\orchids-projects\NexusGift\src\app\layout.tsx
+// File: D:\Gihtub Main\nexus-gift\src\app\layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
