@@ -113,10 +113,18 @@ export async function executeConfidentialTransfer(
     // This will be replaced with real ShadowWire SDK calls
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Generate a mock signature that looks like a real Solana 64-byte signature (approx 88 chars in Base58)
-    const mockSignature = Array.from({ length: 88 }, () =>
-      "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"[Math.floor(Math.random() * 58)]
-    ).join('');
+    // Generate a REAL 64-byte signature encoded in Base58
+    // Must use crypto to ensure it decodes correctly on the backend
+    const randomBytes = new Uint8Array(64);
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      crypto.getRandomValues(randomBytes);
+    } else {
+      for (let i = 0; i < 64; i++) {
+        randomBytes[i] = Math.floor(Math.random() * 256);
+      }
+    }
+    const bs58 = (await import('bs58')).default;
+    const mockSignature = bs58.encode(randomBytes);
 
     const commitment = `sw_commit_${Date.now()}_${Math.random().toString(36).substring(2, 12)}`;
     const proofData = `sw_proof_${Math.random().toString(16).substring(2, 20)}`;
