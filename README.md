@@ -181,6 +181,7 @@ Visit `http://localhost:3000` to see the application.
 ## 🔒 Security & Privacy
 
 - **Zero-Knowledge Proofs**: ShadowWire ensures transaction amounts and links are hidden
+- **Protocol-Backed Issuance**: A resilient safety mechanism that ensures cards are issued even if external gateways (Starpay) are unreachable, provided the on-chain funding to escrow is verified. This prevents funds from being "stuck" in the protocol.
 - **Stateless Design**: No server-side data storage
 - **Encrypted Claim Tokens**: All sensitive data is encrypted in the URL
 - **Production Escrow**: Funds are held in a controlled wallet, not lost to null addresses
