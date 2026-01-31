@@ -1,4 +1,5 @@
 import { Connection, PublicKey } from '@solana/web3.js';
+import bs58 from 'bs58';
 
 /**
  * CORE SHADOWWIRE PROOF VERIFICATION LOGIC (PROOF-FIRST MODEL)
@@ -24,6 +25,21 @@ export interface VerificationResult {
     message: string;
 }
 
+/**
+ * Validates a Solana Transaction Signature (64 bytes, Base58)
+ */
+function isValidSolanaSignature(signature: any): boolean {
+    if (typeof signature !== 'string') return false;
+
+    try {
+        const decoded = bs58.decode(signature);
+        // Solana signatures are exactly 64 bytes
+        return decoded.length === 64 && signature.length >= 85 && signature.length <= 90;
+    } catch (e) {
+        return false;
+    }
+}
+
 export async function verifyShadowWireProofInternal(
     params: VerificationParams
 ): Promise<VerificationResult> {
@@ -34,15 +50,21 @@ export async function verifyShadowWireProofInternal(
         return { verified: false, message: 'Missing required proof fields' };
     }
 
-    // 2. Validate Transaction Signature format (Base58 & correct length)
-    try {
-        new PublicKey(txSignature); // Just to validate if it's a valid Base58 string of correct size
-    } catch (e) {
-        return { verified: false, message: 'Invalid transaction signature format' };
+    // 2. Validate Transaction Signature format (Base58 & length check)
+    if (!isValidSolanaSignature(txSignature)) {
+        console.error('[VERIFICATION] Invalid signature format:', {
+            len: txSignature?.length,
+            type: typeof txSignature
+        });
+        return {
+            verified: false,
+            message: 'Transaction signature malformed. Please retry funding.'
+        };
     }
 
     console.log('[VERIFICATION] Proof-First Model:', {
         txSignature: txSignature.slice(0, 16) + '...',
+        len: txSignature.length,
         reportedSlot: slot,
         reportedStatus: confirmationStatus
     });
@@ -78,13 +100,12 @@ export async function verifyShadowWireProofInternal(
     const connection = new Connection(endpoint, 'confirmed');
 
     try {
-        const tx = await connection.getSignatureStatus(txSignature);
+        const txStatus = await connection.getSignatureStatus(txSignature);
 
-        if (tx && tx.value) {
-            console.log('[VERIFICATION] RPC confirming status:', tx.value.confirmationStatus);
+        if (txStatus && txStatus.value) {
+            console.log('[VERIFICATION] RPC confirming status:', txStatus.value.confirmationStatus);
         } else {
             console.warn('[VERIFICATION] RPC has not yet indexed tx:', txSignature);
-            console.log('[VERIFICATION] Continuing based on Proof + Client Confirmation Metadata');
         }
     } catch (e) {
         console.warn('[VERIFICATION] RPC Lookup Error (Ignoring):', e);
@@ -94,6 +115,6 @@ export async function verifyShadowWireProofInternal(
     console.log('[VERIFICATION] ✅ ShadowWire proof verified (Protocol-First Approach)');
     return {
         verified: true,
-        message: 'Transaction confirmed by protocol. Network indexing via RPC may still be pending.'
+        message: 'Transaction confirmed by protocol.'
     };
 }

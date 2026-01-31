@@ -102,6 +102,11 @@ export async function createGiftAction(formData: {
     // PRODUCTION MODE: Use real ShadowWire + Starpay
     console.log('[PRODUCTION MODE] Using real ShadowWire privacy layer');
 
+    // Runtime Guard: Ensure API keys are present in production
+    if (!process.env.STARPAY_API_KEY && mode === 'PRODUCTION') {
+      throw new Error("Production mode is unavailable: Missing Starpay configuration.");
+    }
+
     const shadowProof = proof as ShadowWireProof;
 
     // Step 1: Verify ShadowWire proof internally (Direct call, no fetch needed)

@@ -144,7 +144,15 @@ export default function CreateGiftPage() {
                 setPaymentStatus('');
                 setStep(4);
             } else {
+                // If it's a signature mismatch, specifically suggest RETRY
+                if (result.error?.includes('signature malformed')) {
+                    alert(`Transaction signature malformed. Please try the "Fund via ShadowWire" button again.`);
+                    setPaymentStatus(''); // Clear status to allow retry
+                    return;
+                }
+
                 if (result.fallbackToDemo && mode === 'PRODUCTION') {
+                    // Only prompt for fallback if it's not a retryable signature error
                     const shouldFallback = confirm(
                         `Production mode failed: ${result.error}\n\nWould you like to continue in Demo mode instead?`
                     );
@@ -158,7 +166,11 @@ export default function CreateGiftPage() {
         } catch (err: any) {
             console.error(err);
             setPaymentStatus('');
-            alert(err.message || "Something went wrong");
+            if (err.message?.includes('signature malformed')) {
+                alert('Transaction signature malformed. Please retry funding.');
+            } else {
+                alert(err.message || "Something went wrong");
+            }
         } finally {
             setIsSubmitting(false);
         }

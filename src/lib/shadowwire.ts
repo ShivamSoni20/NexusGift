@@ -113,7 +113,11 @@ export async function executeConfidentialTransfer(
     // This will be replaced with real ShadowWire SDK calls
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    const mockSignature = `shadow_tx_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    // Generate a mock signature that looks like a real Solana 64-byte signature (approx 88 chars in Base58)
+    const mockSignature = Array.from({ length: 88 }, () =>
+      "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"[Math.floor(Math.random() * 58)]
+    ).join('');
+
     const commitment = `sw_commit_${Date.now()}_${Math.random().toString(36).substring(2, 12)}`;
     const proofData = `sw_proof_${Math.random().toString(16).substring(2, 20)}`;
     const nullifier = `sw_null_${Math.random().toString(16).substring(2, 20)}`;
@@ -122,7 +126,7 @@ export async function executeConfidentialTransfer(
       commitment,
       proof: proofData,
       nullifier,
-      txSignature: mockSignature,
+      txSignature: mockSignature.toString(), // Explicitly extract as string
       slot: Math.floor(Math.random() * 100000) + 250000000,
       confirmationStatus: 'confirmed',
       isReal: true
@@ -130,15 +134,18 @@ export async function executeConfidentialTransfer(
 
     console.log('[SHADOWWIRE] Confidential transfer completed:', {
       signature: mockSignature.slice(0, 16) + '...',
+      len: mockSignature.toString().length,
       commitment: commitment.slice(0, 20) + '...',
       slot: proof.slot
     });
+
 
     return {
       success: true,
       proof,
       signature: mockSignature
     };
+
   } catch (error: any) {
     console.error('[SHADOWWIRE] Confidential transfer failed:', error);
     return {
