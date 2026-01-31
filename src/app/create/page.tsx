@@ -18,7 +18,8 @@ import {
   Wallet,
   Zap,
   ArrowRight,
-  Lock
+  Lock,
+  UserCircle
 } from 'lucide-react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -31,12 +32,13 @@ const TOKENS = [
 ];
 
 export default function CreateGiftPage() {
-  const { connected } = useWallet();
+  const { connected, publicKey } = useWallet();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [claimToken, setClaimToken] = useState<string | null>(null);
   const [finalStatus, setFinalStatus] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [useDemoIdentity, setUseDemoIdentity] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -62,6 +64,7 @@ export default function CreateGiftPage() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
+      // Simulation logic remains the same regardless of wallet state
       const proof = await generatePrivatePayment(formData.amount);
       const scheduledAt = formData.isScheduled
         ? new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toISOString()
@@ -94,15 +97,15 @@ export default function CreateGiftPage() {
   };
 
   return (
-    <div className="bg-ash-950 min-h-screen pt-32 pb-20 px-6">
+    <div className="bg-ash-950 min-h-screen pt-32 pb-20 px-6 font-body">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 mb-20 border-b border-white/5 pb-10">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-2 py-0.5 rounded-none bg-gold/10 border border-gold/20 text-gold text-[10px] font-bold uppercase tracking-[0.3em]">
-              Vault v1.0 • Stateless
+              Vault v1.0 • {connected ? 'Mainnet Protocol' : 'Demo Mode'}
             </div>
             <h1 className="text-5xl md:text-7xl font-heading italic tracking-tighter text-white">Configure Gift</h1>
-            <p className="text-white/40 font-body text-sm tracking-wide">Enter the parameters of your confidential delivery.</p>
+            <p className="text-white/40 text-sm tracking-wide">Enter the parameters of your confidential delivery.</p>
           </div>
 
           <div className="flex flex-col items-end gap-4">
@@ -336,34 +339,75 @@ export default function CreateGiftPage() {
                     </div>
                   </div>
 
-                  {!connected ? (
-                    <div className="wallet-adapter-wrapper w-full">
-                      {mounted && (
-                        <WalletMultiButton className="!w-full !py-10 !bg-white !text-ash-950 !rounded-none !text-xs !font-bold !uppercase !tracking-[0.4em] hover:!bg-gold !transition-all !border-none !h-auto" />
-                      )}
-                    </div>
-                  ) : (
-                    <button
-                      onClick={handleSubmit}
-                      disabled={isSubmitting}
-                      className="group relative w-full py-10 bg-white text-ash-950 font-bold uppercase tracking-[0.4em] text-xs hover:bg-gold transition-all duration-500 overflow-hidden disabled:opacity-30"
-                    >
-                      <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                      <span className="relative z-10 flex items-center justify-center gap-4">
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            Encoding Proof...
-                          </>
-                        ) : (
-                          <>
-                            <ShieldCheck className="w-4 h-4" />
-                            Authorize & Broadcast
-                          </>
+                  <div className="space-y-8">
+                    {!connected && !useDemoIdentity ? (
+                      <div className="space-y-4">
+                        <div className="flex flex-col gap-4">
+                          <label className="text-[10px] font-bold text-white/40 uppercase tracking-[0.4em]">Authorization Method</label>
+                          <div className="wallet-adapter-wrapper">
+                            {mounted && (
+                              <WalletMultiButton className="!w-full !py-8 !bg-white !text-ash-950 !rounded-none !text-xs !font-bold !uppercase !tracking-[0.4em] hover:!bg-gold !transition-all !border-none !h-auto" />
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="flex-1 h-px bg-white/5" />
+                            <span className="text-[9px] text-white/20 font-bold">OR</span>
+                            <div className="flex-1 h-px bg-white/5" />
+                          </div>
+                          <button
+                            onClick={() => setUseDemoIdentity(true)}
+                            className="w-full py-6 border border-white/10 text-white/40 text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-white/5 hover:text-white transition-all flex items-center justify-center gap-3"
+                          >
+                            <UserCircle className="w-4 h-4" />
+                            Continue in Demo Mode (No Wallet)
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-8">
+                        {useDemoIdentity && !connected && (
+                          <div className="p-4 bg-amber-500/5 border border-amber-500/10 flex items-center gap-3 text-amber-500/60 text-[10px] font-bold uppercase tracking-widest">
+                            <Zap className="w-3 h-3" />
+                            Active Session: Ephemeral Demo Identity
+                          </div>
                         )}
-                      </span>
-                    </button>
-                  )}
+                        {connected && (
+                          <div className="p-4 bg-green-500/5 border border-green-500/10 flex items-center gap-3 text-green-500/60 text-[10px] font-bold uppercase tracking-widest">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Network Ready: {publicKey?.toBase58().slice(0, 12)}...
+                          </div>
+                        )}
+                        <button
+                          onClick={handleSubmit}
+                          disabled={isSubmitting}
+                          className="group relative w-full py-10 bg-white text-ash-950 font-bold uppercase tracking-[0.4em] text-xs hover:bg-gold transition-all duration-500 overflow-hidden disabled:opacity-30"
+                        >
+                          <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                          <span className="relative z-10 flex items-center justify-center gap-4">
+                            {isSubmitting ? (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                Encoding Proof...
+                              </>
+                            ) : (
+                              <>
+                                <ShieldCheck className="w-4 h-4" />
+                                Authorize & Broadcast
+                              </>
+                            )}
+                          </span>
+                        </button>
+                        {!connected && useDemoIdentity && (
+                          <button
+                            onClick={() => setUseDemoIdentity(false)}
+                            className="w-full text-[9px] text-white/20 hover:text-white uppercase tracking-[0.3em] font-bold transition-colors"
+                          >
+                            Back to Wallet Selection
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </motion.div>
               )}
 
@@ -452,11 +496,11 @@ export default function CreateGiftPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>NETWORK_ID</span>
-                  <span className="text-white/60">SOLANA::MAINNET</span>
+                  <span className="text-white/60">SOLANA::DEVNET</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>PRIVACY_LEVEL</span>
-                  <span className="text-gold/80">MAXIMAL</span>
+                  <span>SENDER_ORIGIN</span>
+                  <span className="text-gold/80">{connected ? 'PROTOCOL_WALLET' : 'DEMO_IDENTITY'}</span>
                 </div>
               </div>
             </div>
