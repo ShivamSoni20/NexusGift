@@ -18,10 +18,10 @@ export function ModeProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         // Check if production mode is available
-        const hasStarpayKey = !!process.env.NEXT_PUBLIC_STARPAY_API_KEY;
-        const hasShadowWireConfig = !!process.env.NEXT_PUBLIC_SHADOWWIRE_ENABLED;
+        const hasStarpay = process.env.NEXT_PUBLIC_STARPAY_ENABLED === 'true';
+        const hasShadowWire = process.env.NEXT_PUBLIC_SHADOWWIRE_ENABLED === 'true';
 
-        setCanUseProduction(hasStarpayKey || hasShadowWireConfig);
+        setCanUseProduction(hasStarpay || hasShadowWire);
 
         // Load saved mode preference
         const savedMode = localStorage.getItem('nexusgift_mode') as AppMode;

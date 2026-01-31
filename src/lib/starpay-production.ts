@@ -21,13 +21,15 @@ export interface StarpayConfig {
 
 /**
  * Initialize Starpay configuration
+ * Note: These are server-side only variables
  */
 export function initStarpay(): StarpayConfig {
-    const apiKey = process.env.NEXT_PUBLIC_STARPAY_API_KEY;
-    const apiEndpoint = process.env.NEXT_PUBLIC_STARPAY_ENDPOINT || 'https://api.starpayinfo.com';
+    const apiKey = process.env.STARPAY_API_KEY;
+    const apiEndpoint = process.env.STARPAY_ENDPOINT || 'https://api.starpayinfo.com';
+    const isPubliclyEnabled = process.env.NEXT_PUBLIC_STARPAY_ENABLED === 'true';
 
     return {
-        enabled: !!apiKey,
+        enabled: !!apiKey || isPubliclyEnabled,
         apiKey,
         apiEndpoint
     };
