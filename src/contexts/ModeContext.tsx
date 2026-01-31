@@ -20,8 +20,16 @@ export function ModeProvider({ children }: { children: ReactNode }) {
         // Check if production mode is available
         const hasStarpay = process.env.NEXT_PUBLIC_STARPAY_ENABLED === 'true';
         const hasShadowWire = process.env.NEXT_PUBLIC_SHADOWWIRE_ENABLED === 'true';
+        const hasEscrow = !!process.env.NEXT_PUBLIC_PRODUCTION_ESCROW_PUBLIC_KEY;
 
-        setCanUseProduction(hasStarpay || hasShadowWire);
+        // REQUIREMENT 1: Production requires escrow wallet
+        const productionReady = (hasStarpay || hasShadowWire) && hasEscrow;
+
+        setCanUseProduction(productionReady);
+
+        if (!hasEscrow && (hasStarpay || hasShadowWire)) {
+            console.warn('[PRODUCTION] Escrow wallet not configured. Production mode disabled.');
+        }
 
         // Load saved mode preference
         const savedMode = localStorage.getItem('nexusgift_mode') as AppMode;

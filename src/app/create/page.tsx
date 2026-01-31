@@ -98,17 +98,13 @@ export default function CreateGiftPage() {
                     throw new Error(`Insufficient ${formData.tokenSymbol}. You have ${balanceCheck.balance.toFixed(4)}, but need ${formData.amount}.`);
                 }
 
-                // REQUIREMENT 1: Use PRODUCTION escrow address (CRITICAL)
-                const escrowAddress = process.env.NEXT_PUBLIC_PRODUCTION_ESCROW_PUBLIC_KEY;
+                // REQUIREMENT 1: Validate and get production escrow
+                const { getProductionEscrow } = await import('@/lib/escrow-validation');
+                const escrowPubkey = getProductionEscrow();
 
-                if (!escrowAddress) {
-                    throw new Error('PRODUCTION_ESCROW_PUBLIC_KEY not configured. Cannot proceed with real transfer.');
-                }
+                console.log('[PRODUCTION] Using validated escrow:', escrowPubkey.toBase58());
 
-                const escrowPubkey = new PublicKey(escrowAddress);
-                console.log('[PRODUCTION] Using escrow:', escrowPubkey.toBase58());
-
-                setPaymentStatus('Initiating REAL transfer to secure escrow...');
+                setPaymentStatus('Securing funds in escrow...');
 
                 const transferResult = await executeConfidentialTransfer(
                     connection,
@@ -122,7 +118,7 @@ export default function CreateGiftPage() {
                     throw new Error(transferResult.error || 'Confidential transfer failed');
                 }
 
-                setPaymentStatus('Transaction confirmed by wallet. Network indexing may be delayed.');
+                setPaymentStatus(mode === 'PRODUCTION' ? 'Escrow confirmed - funds secured ✓' : 'Transaction confirmed');
 
                 // CRITICAL: Explicitly extract signature EXACTLY as a string
                 // No full objects, no metadata, just the Base58 string
@@ -144,7 +140,7 @@ export default function CreateGiftPage() {
                 ? new Date(`${formData.scheduledDate}T${formData.scheduledTime}`).toISOString()
                 : undefined;
 
-            setPaymentStatus(mode === 'PRODUCTION' ? 'Issuing real Starpay card...' : 'Generating gift...');
+            setPaymentStatus(mode === 'PRODUCTION' ? 'Issuing Starpay card...' : 'Generating gift...');
 
             // DOUBLE SUBMISSION GUARD: handleSubmit is already disabled via isSubmitting
             const result = await createGiftAction({

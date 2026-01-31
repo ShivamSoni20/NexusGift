@@ -75,6 +75,38 @@ NexusGift operates in two distinct modes:
    - ❌ NO placeholder addresses
    - ❌ NO optimistic UI updates
 
+4. **Production Flow Diagram**
+   ```
+   User Creates Gift (Production Mode)
+         ↓
+   [1] Validate Escrow Configured
+         ↓
+   [2] Capture Pre-Transfer Balances
+         ↓ (Sender Balance, Escrow Balance)
+   [3] Execute Real Solana Transfer
+         ↓ (SOL/USDC → Escrow Wallet)
+   [4] Confirm Transaction On-Chain
+         ↓
+   [5] Verify Balance Changes
+         ↓ (Sender ↓, Escrow ↑)
+   [6] ✅ GATE: Funds Secured
+         ↓
+   [7] Call Starpay Card Issuance API
+         ↓
+   [8] Validate API Response
+         ↓ (card_id, cardNumber, cvv, expiry, status)
+   [9] ✅ GATE: Card Issued
+         ↓
+   [10] Render Card UI
+         ↓
+   SUCCESS: "Funds Secured & Card Issued"
+   ```
+
+   **Critical Gates:**
+   - If balance doesn't change → ABORT (no card issuance)
+   - If Starpay fails → ABORT (funds in escrow, no card)
+   - Both gates must pass for success
+
 ---
 
 ## 🏛️ Project Structure
