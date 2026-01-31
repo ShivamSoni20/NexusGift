@@ -1,14 +1,24 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { WalletContextProvider } from "@/components/WalletContextProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+const headingFont = Fraunces({
+  subsets: ["latin"],
+  variable: '--font-heading',
+  display: 'swap',
+});
+
+const bodyFont = Outfit({
+  subsets: ["latin"],
+  variable: '--font-body',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
-  title: "NexusGift - Private Solana Gift Cards",
-  description: "Secure and private card issuance on Solana powered by ShadowWire and StarPay",
+  title: "NexusGift | Private Gifting Refined",
+  description: "Stateless, zero-knowledge gift issuance on Solana.",
 };
 
 export default function RootLayout({
@@ -17,11 +27,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-black text-white min-h-screen selection:bg-indigo-500/30`}>
+    <html lang="en" className={`dark ${headingFont.variable} ${bodyFont.variable}`}>
+      <body className="font-body bg-[#050505] text-[#e0e0e0] min-h-screen selection:bg-amber-500/30 overflow-x-hidden">
         <WalletContextProvider>
           <Navbar />
-          <main className="pt-16">
+          <main className="">
             {children}
           </main>
         </WalletContextProvider>

@@ -8,11 +8,23 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        heading: ['var(--font-heading)', 'serif'],
+        body: ['var(--font-body)', 'sans-serif'],
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
-        primary: "#9945FF",
-        secondary: "#14F195",
+        ash: {
+          950: '#050505',
+          900: '#0a0a0a',
+          800: '#1a1a1a',
+          700: '#2a2a2a',
+        },
+        gold: {
+          DEFAULT: '#d4af37',
+          500: '#d4af37',
+          400: '#e5c05b',
+          600: '#b08d26',
+        }
       },
     },
   },
