@@ -37,7 +37,7 @@ export function initStarpay(): StarpayConfig {
 
 /**
  * Issue a real Starpay virtual card
- * Falls back to mock card generation if API is unavailable
+ * REQUIREMENT 3: NO FALLBACK - Real issuance only
  */
 export async function issueStarpayCard(
     usdAmount: number,
@@ -45,33 +45,31 @@ export async function issueStarpayCard(
 ): Promise<StarpayCardDetails> {
     const config = initStarpay();
 
-    // REQUIREMENT 4: Explicit env validation
+    // REQUIREMENT 3: Strict validation - no fallback
     if (!config.apiKey) {
-        console.warn('[STARPAY] API key missing, using mock card generation');
-        return generateMockCard(usdAmount);
+        throw new Error('STARPAY_API_KEY not configured. Cannot issue real cards.');
     }
 
     if (!config.apiEndpoint) {
-        console.warn('[STARPAY] Endpoint missing, using mock card generation');
-        return generateMockCard(usdAmount);
+        throw new Error('STARPAY_ENDPOINT not configured. Cannot issue real cards.');
     }
 
+    console.log('[STARPAY PRODUCTION] Issuing REAL card for $', usdAmount);
+    console.log('[STARPAY] Endpoint:', config.apiEndpoint);
+
+    // Calculate issuance fee (0.2% with min $5, max $500)
+    const feePercent = 0.002;
+    const rawFee = usdAmount * feePercent;
+    const fee = Math.max(5, Math.min(500, rawFee));
+    const totalAmount = usdAmount + fee;
+
+    console.log('[STARPAY] Fee:', fee, 'Total:', totalAmount);
+
+    // Make API call to Starpay with timeout
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     try {
-        console.log('[STARPAY PRODUCTION] Issuing card for $', usdAmount);
-        console.log('[STARPAY] Endpoint:', config.apiEndpoint);
-
-        // Calculate issuance fee (0.2% with min $5, max $500)
-        const feePercent = 0.002;
-        const rawFee = usdAmount * feePercent;
-        const fee = Math.max(5, Math.min(500, rawFee));
-        const totalAmount = usdAmount + fee;
-
-        console.log('[STARPAY] Fee:', fee, 'Total:', totalAmount);
-
-        // Make API call to Starpay with timeout
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
-
         const response = await fetch(`${config.apiEndpoint}/v1/cards/issue`, {
             method: 'POST',
             headers: {
@@ -96,10 +94,27 @@ export async function issueStarpayCard(
         if (!response.ok) {
             const errorText = await response.text();
             console.error('[STARPAY] API error response:', response.status, errorText);
-            throw new Error(`Starpay API error: ${response.status} ${errorText}`);
+            throw new Error(`Starpay API returned ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
+
+        // REQUIREMENT 3: Validate response has required fields
+        if (!data.cardId) {
+            throw new Error('Starpay response missing card_id - issuance failed');
+        }
+
+        if (!data.cardNumber || !data.cvv || !data.expiryDate) {
+            throw new Error('Starpay response incomplete - missing card details');
+        }
+
+        // REQUIREMENT 3: Verify card status
+        const cardStatus = data.status || data.cardStatus;
+        if (cardStatus && !['ACTIVE', 'ISSUED', 'PENDING'].includes(cardStatus.toUpperCase())) {
+            throw new Error(`Card issuance failed - status: ${cardStatus}`);
+        }
+
+        console.log('[STARPAY] ✅ Card issued successfully:', data.cardId);
 
         // Parse Starpay response
         return {
@@ -112,11 +127,12 @@ export async function issueStarpayCard(
             isReal: true
         };
     } catch (error: any) {
-        console.error('[STARPAY] Card issuance failed:', error.message);
+        console.error('[STARPAY] Card issuance FAILED:', error.message);
 
-        // Fallback to mock card for development/demo
-        console.warn('[STARPAY] Falling back to mock card generation');
-        return generateMockCard(usdAmount);
+        // REQUIREMENT 3: NO FALLBACK - throw error
+        throw new Error(`Card issuance failed: ${error.message}`);
+    } finally {
+        clearTimeout(timeout);
     }
 }
 

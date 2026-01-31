@@ -98,11 +98,17 @@ export default function CreateGiftPage() {
                     throw new Error(`Insufficient ${formData.tokenSymbol}. You have ${balanceCheck.balance.toFixed(4)}, but need ${formData.amount}.`);
                 }
 
-                // Create a temporary escrow wallet to receive the gift funds
-                // This is a valid Solana "System Program" address for the devnet simulation
-                const escrowPubkey = new PublicKey('11111111111111111111111111111111');
+                // REQUIREMENT 1: Use PRODUCTION escrow address (CRITICAL)
+                const escrowAddress = process.env.NEXT_PUBLIC_PRODUCTION_ESCROW_PUBLIC_KEY;
 
-                setPaymentStatus('Initiating confidential transfer via ShadowWire...');
+                if (!escrowAddress) {
+                    throw new Error('PRODUCTION_ESCROW_PUBLIC_KEY not configured. Cannot proceed with real transfer.');
+                }
+
+                const escrowPubkey = new PublicKey(escrowAddress);
+                console.log('[PRODUCTION] Using escrow:', escrowPubkey.toBase58());
+
+                setPaymentStatus('Initiating REAL transfer to secure escrow...');
 
                 const transferResult = await executeConfidentialTransfer(
                     connection,

@@ -184,7 +184,7 @@ export async function createGiftAction(formData: {
       claimToken,
       status: finalStatus,
       txSignature: shadowProof.txSignature,
-      message: "Gift created successfully (Production Mode: Real Transfer)"
+      message: "Funds Secured & Card Issued"
     };
 
   } catch (error: any) {
