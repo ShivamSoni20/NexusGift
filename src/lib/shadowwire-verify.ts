@@ -25,15 +25,26 @@ export interface VerificationResult {
     message: string;
 }
 
-/**
- * Validates a Solana Transaction Signature (64 bytes, Base58)
- */
-function isValidSolanaSignature(txSignature: any): boolean {
-    if (typeof txSignature !== 'string') return false;
 
+export async function verifyShadowWireProofInternal(
+    params: VerificationParams
+): Promise<VerificationResult> {
+    const { commitment, proof, nullifier, txSignature, tokenSymbol, slot, confirmationStatus } = params;
+
+    // REQUIREMENT 3 & 4: Payload Validation
+    if (!txSignature) {
+        throw new Error("txSignature missing from payload");
+    }
+
+    // Correct Solana Validation Logic
     try {
+        if (typeof txSignature !== 'string') {
+            throw new Error("Malformed transaction signature");
+        }
+
         const decoded = bs58.decode(txSignature);
 
+        // REQUIREMENT 3: Logging
         console.log(
             "[BACKEND] sig:",
             txSignature,
@@ -42,26 +53,17 @@ function isValidSolanaSignature(txSignature: any): boolean {
             decoded.length
         );
 
-        return decoded.length === 64;
-    } catch (e) {
-        console.error("[BACKEND] Signature decode failed:", e);
-        return false;
-    }
-}
-
-export async function verifyShadowWireProofInternal(
-    params: VerificationParams
-): Promise<VerificationResult> {
-    const { commitment, proof, nullifier, txSignature, tokenSymbol, slot, confirmationStatus } = params;
-
-    // 1. Validate required fields
-    if (!commitment || !proof || !txSignature) {
-        return { verified: false, message: 'Missing required proof fields' };
-    }
-
-    // 2. Validate Transaction Signature format
-    if (!isValidSolanaSignature(txSignature)) {
+        if (decoded.length !== 64) {
+            throw new Error("Malformed transaction signature");
+        }
+    } catch (e: any) {
+        console.error("[BACKEND] Validation failed:", e.message);
         throw new Error("Malformed transaction signature");
+    }
+
+    // 1. Validate other required fields
+    if (!commitment || !proof) {
+        return { verified: false, message: 'Missing required proof fields' };
     }
 
     console.log('[VERIFICATION] Proof-First Model:', {

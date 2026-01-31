@@ -108,6 +108,11 @@ export async function createGiftAction(formData: {
     }
 
     const shadowProof = proof as ShadowWireProof;
+    console.log('[PRODUCTION] Received shadowProof:', {
+      txSignature: shadowProof.txSignature,
+      type: typeof shadowProof.txSignature,
+      len: shadowProof.txSignature?.length
+    });
 
     // Step 1: Verify ShadowWire proof internally (Direct call, no fetch needed)
     const verifyResult = await verifyShadowWireProofInternal({
