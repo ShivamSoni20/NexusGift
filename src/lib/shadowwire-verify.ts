@@ -29,20 +29,22 @@ export interface VerificationResult {
  * Validates a Solana Transaction Signature (64 bytes, Base58)
  */
 function isValidSolanaSignature(txSignature: any): boolean {
-    console.log("[BACKEND] txSignature:", txSignature, typeof txSignature, txSignature?.length);
-
     if (typeof txSignature !== 'string') return false;
-
-    // Strict Base58 regex
-    const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/;
-    if (!base58Regex.test(txSignature)) {
-        return false;
-    }
 
     try {
         const decoded = bs58.decode(txSignature);
-        return decoded.length === 64 && txSignature.length >= 85 && txSignature.length <= 90;
+
+        console.log(
+            "[BACKEND] sig:",
+            txSignature,
+            typeof txSignature,
+            txSignature.length,
+            decoded.length
+        );
+
+        return decoded.length === 64;
     } catch (e) {
+        console.error("[BACKEND] Signature decode failed:", e);
         return false;
     }
 }
