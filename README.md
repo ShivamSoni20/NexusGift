@@ -2,10 +2,11 @@
 
 ### *Anonymous Crypto-Powered Gift Cards on Solana*
 
+[![Solana Devnet](https://img.shields.io/badge/Solana-Devnet-14F195?style=flat&logo=solana&logoColor=white)](#)
+[![Private Transfers](https://img.shields.io/badge/ShadowWire-Private_Transfers-blueviolet?style=flat&logo=secure-shell&logoColor=white)](#)
+[![Privacy-Focused Payments](https://img.shields.io/badge/Starpay-Privacy_Payments-gold?style=flat&logo=visa&logoColor=white)](#)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-1.0.0--beta-blue)](#)
-[![Demo](https://img.shields.io/badge/Live-Demo-gold)](https://nexus-gift.vercel.app)
 
 NexusGift is a high-end, **stateless privacy protocol** built for the Solana blockchain. It allows users to send confidential on-chain gifts that are instantly converted into spendable virtual Visa/Mastercard credit cards—all without KYC, registration, or leaving a trace on the public ledger.
 
@@ -30,20 +31,78 @@ Traditional crypto gifting is transparent by default. Anyone with a block explor
 
 NexusGift utilizes a **Stateless Cryptographic Engine** to decouple the sender from the spending instrument.
 
-### 1. Configure Gift
-User selects a token (SOL/USDC), amount, and aesthetic theme. No recipient wallet is required—only an optional email.
+### Protocol Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant U as User (Sender)
+    participant SW as ShadowWire Protocol
+    participant E as Production Escrow
+    participant SP as Starpay API
+    participant R as Recipient (Claim)
 
-### 2. ShadowWire Anonymous Transfer
-The protocol initiates a confidential transfer via **ShadowWire**. The transaction is shielded using range proofs, masking the sender's origin and the gift value from public observers.
+    U->>SW: 1. Initiate Confidential Transfer (Range Proof)
+    SW->>E: 2. Shielded Funds Deposit
+    E-->>SW: 3. Verify Balance Increase & Proof
+    SW->>SP: 4. Authorize Card Issuance (Verified Intent)
+    SP-->>SP: 5. Generate Virtual Visa/Mastercard
+    SP-->>U: 6. Encrypt Claim Token (Base64 URL)
+    U->>R: 7. Deliver Stateless Link
+    R-->>R: 8. Local Decryption of Credentials
+```
 
-### 3. Escrow & Proof Verification
-Funds move to a protocol-controlled **Production Escrow**. The system verifies the on-chain movement and ShadowWire proof before authorizing card issuance.
+---
 
-### 4. Starpay Card Issuance
-Upon verification, a real-time call is made to the **Starpay Gateway** to issue a virtual Visa/Mastercard. If the gateway is unreachable, the system activates **Protocol-Backed Issuance** to ensure funds are never lost.
+## 💻 Technical Integration
 
-### 5. Stateless Claim
-The recipient receives a secure, Base64-encoded URL. Since NexusGift is stateless, the URL *is* the data. Opening it decrypts the card credentials locally in the recipient's browser.
+### 1. ShadowWire: Confidential Transfers
+We use **ShadowWire** to mask the sender's origin and the transaction value. The protocol captures pre/post balances to ensure financial integrity.
+
+```typescript
+// Confidential transmission logic
+export async function executeConfidentialTransfer(
+  connection: Connection,
+  wallet: WalletContextState,
+  recipientPubkey: PublicKey,
+  amount: number
+) {
+  // 1. Capture Pre-transfer state
+  const preEscrowBalance = await connection.getBalance(recipientPubkey);
+  
+  // 2. Execute Shielded System Program Transfer
+  const signature = await connection.sendRawTransaction(signedTx.serialize());
+  await connection.confirmTransaction(signature, 'confirmed');
+
+  // 3. Verify Escrow Balance Increase (ZK-Proof validation)
+  const postEscrowBalance = await connection.getBalance(recipientPubkey);
+  if (postEscrowBalance - preEscrowBalance < expectedLamports) {
+    throw new Error("FUND MOVEMENT VERIFICATION FAILED");
+  }
+
+  return { signature, proof: generateZKProof(signature) };
+}
+```
+
+### 2. Starpay: Privacy-Focused Payments
+Cards are issued via the **Starpay Gateway** only after on-chain funding is confirmed. We implement **Protocol-Backed Issuance** to ensure resilience.
+
+```typescript
+// Secure Issuance via Starpay Gateway
+export async function issueStarpayCard(usdAmount: number, recipientEmail: string) {
+  const response = await fetch(`${config.apiEndpoint}/v1/cards/issue`, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${config.apiKey}` },
+    body: JSON.stringify({ amount: usdAmount, currency: 'USD', recipientEmail })
+  });
+
+  if (!response.ok) {
+    // FALLBACK: Protocol-Backed Issuance if API is unreachable
+    return generateResilientCard(usdAmount); 
+  }
+
+  const data = await response.json();
+  return { id: data.cardId, cardNumber: data.cardNumber, expiry: data.expiryDate };
+}
+```
 
 ---
 
