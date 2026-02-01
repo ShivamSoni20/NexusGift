@@ -24,6 +24,7 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 
 export default function ClaimGiftPage({ params }: { params: { token: string } }) {
+  const { connected } = useWallet();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [gift, setGift] = useState<any>(null);
