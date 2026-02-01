@@ -41,3 +41,5 @@ export function CardItem({ card, index }: { card: any, index: number }) {
     </motion.div>
   );
 }
+ 
+ 

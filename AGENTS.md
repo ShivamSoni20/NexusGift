@@ -43,3 +43,4 @@ NexusGift is a privacy-first crypto gifting platform on Solana. It enables users
 - Wrap `useSearchParams()` in Suspense.
 - Ensure security best practices for private transactions.
 - Never log private payment amounts or sender wallet addresses.
+ 

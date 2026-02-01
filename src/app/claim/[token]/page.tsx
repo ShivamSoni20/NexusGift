@@ -252,3 +252,4 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
     </div>
   );
 }
+ 

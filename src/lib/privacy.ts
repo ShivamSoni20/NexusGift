@@ -21,3 +21,5 @@ export async function verifyPrivatePayment(proof: PrivatePaymentProof): Promise<
   // SIMULATED: Verification always passes in demo mode
   return true;
 }
+ 
+ 

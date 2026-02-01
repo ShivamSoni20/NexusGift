@@ -99,3 +99,5 @@ export function GiftCardPreview({ amount, recipient, theme, cardNumber, expiry, 
     </div>
   );
 }
+ 
+ 
