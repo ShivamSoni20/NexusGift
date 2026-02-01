@@ -143,6 +143,12 @@ export async function issueStarpayCard(usdAmount: number, recipientEmail: string
 *Real-time monitoring of ZK-proof generation and network status.*
 ![Entropy](./screenshots/entropy.png)
 
+### 5. Quantum Dispatch
+*Automated email delivery sequence ensures recipients receive their gifts instantly via a stateless relay.*
+
+### 6. Digital Wallet Provisioning
+*Recipients can provision their decrypted virtual cards directly into Apple Wallet or Google Pay via our integrated secure flow.*
+
 ---
 
 ## ⚖️ License
