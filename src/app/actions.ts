@@ -4,6 +4,7 @@ import { verifyPrivatePayment, PrivatePaymentProof } from "@/lib/privacy";
 import { issueVirtualCard } from "@/lib/issuance";
 import { issueStarpayCard } from "@/lib/starpay-production";
 import { verifyShadowWireProofInternal } from "@/lib/shadowwire-verify";
+import { sendGiftEmail } from "@/lib/email";
 
 /**
  * DUAL-MODE ACTIONS
@@ -90,6 +91,16 @@ export async function createGiftAction(formData: {
       };
 
       const claimToken = encodeGiftState(state);
+      const claimLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/claim/${claimToken}`;
+
+      // Trigger automatic email delivery (non-blocking for response)
+      sendGiftEmail({
+        recipientEmail: formData.recipientEmail,
+        claimLink,
+        message: formData.message,
+        amount: formData.amount,
+        tokenSymbol: formData.tokenSymbol
+      }).catch(err => console.error('[ACTION] Email delivery failed:', err));
 
       return {
         success: true,
@@ -178,6 +189,16 @@ export async function createGiftAction(formData: {
     };
 
     const claimToken = encodeGiftState(state);
+    const claimLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/claim/${claimToken}`;
+
+    // Trigger automatic email delivery (non-blocking for response)
+    sendGiftEmail({
+      recipientEmail: formData.recipientEmail,
+      claimLink,
+      message: formData.message,
+      amount: formData.amount,
+      tokenSymbol: formData.tokenSymbol
+    }).catch(err => console.error('[ACTION] Email delivery failed:', err));
 
     return {
       success: true,
@@ -241,6 +262,6 @@ export async function claimGiftAction(token: string) {
     return { success: false, error: error.message };
   }
 }
- 
- 
- 
+
+
+

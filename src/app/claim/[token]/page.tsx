@@ -15,8 +15,13 @@ import {
   Loader2,
   Lock,
   Zap,
-  ShieldCheck
+  ShieldCheck,
+  Wallet
 } from 'lucide-react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export default function ClaimGiftPage({ params }: { params: { token: string } }) {
   const [loading, setLoading] = useState(true);
@@ -59,13 +64,37 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const handleArchivePDF = () => {
+  const handleArchivePDF = async () => {
     setIsArchiving(true);
-    // Give state time to update before triggering print
-    setTimeout(() => {
-      window.print();
+    try {
+      const element = document.getElementById('gift-card-capture');
+      if (!element) throw new Error("Card element not found");
+
+      const canvas = await html2canvas(element, {
+        backgroundColor: '#050505',
+        scale: 2, // Higher quality
+        logging: false,
+        useCORS: true
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`nexusgift-card-${gift.token_symbol}.pdf`);
+
+      setCopied('PDF Archived Successfully');
+      setTimeout(() => setCopied(null), 3000);
+    } catch (err) {
+      console.error('PDF Generation failed:', err);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
       setIsArchiving(false);
-    }, 500);
+    }
   };
 
   const handleWalletIntegration = () => {
@@ -116,7 +145,7 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
             animate={{ opacity: 1, x: 0 }}
             className="lg:col-span-6 space-y-10"
           >
-            <div className="relative group">
+            <div className="relative group" id="gift-card-capture">
               <GiftCardPreview
                 amount={gift.usd_equivalent}
                 recipient={metadata.recipientEmail}
@@ -256,23 +285,36 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="flex flex-col gap-4">
                     <button
                       onClick={handleArchivePDF}
                       disabled={isArchiving}
-                      className="py-5 border border-white/10 text-white/40 text-[10px] uppercase font-bold tracking-[0.3em] hover:bg-white/5 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      className="py-5 border border-white/10 text-white/40 text-[10px] uppercase font-bold tracking-[0.3em] hover:bg-white/5 transition-all flex items-center justify-center gap-2 disabled:opacity-50 w-full"
                     >
                       {isArchiving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                       {isArchiving ? 'Generating...' : 'Archive to PDF'}
                     </button>
-                    <button
-                      onClick={handleWalletIntegration}
-                      disabled={isProvisioning}
-                      className="py-5 bg-gold text-ash-950 text-[10px] uppercase font-bold tracking-[0.3em] hover:scale-[1.02] transition-all shadow-[0_10px_30px_-10px_rgba(212,175,55,0.3)] flex items-center justify-center gap-2 disabled:opacity-50"
-                    >
-                      {isProvisioning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
-                      {isProvisioning ? 'Provisioning...' : 'Add to Apple/Google Wallet'}
-                    </button>
+
+                    <div className="wallet-adapter-wrapper w-full">
+                      <WalletMultiButton
+                        className="!w-full !justify-center !py-6 !bg-gold !text-ash-950 !text-[10px] !font-bold !uppercase !tracking-[0.3em] !rounded-none !h-auto hover:!scale-[1.02] !transition-all !shadow-[0_10px_30px_-10px_rgba(212,175,55,0.3)]"
+                      >
+                        {connected ? (
+                          <span className="flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4" />
+                            Wallet Connected
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <Wallet className="w-4 h-4" />
+                            Connect Wallet for Enhanced UX
+                          </span>
+                        )}
+                      </WalletMultiButton>
+                      <p className="text-[8px] text-white/20 uppercase tracking-[0.2em] mt-3 text-center">
+                        Wallet connection is optional and not required to claim.
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
               )}
