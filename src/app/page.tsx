@@ -157,9 +157,30 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
+
+        {/* Protocol Trust Banner */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          className="mt-20 border-y border-white/5 bg-ash-900/30 py-12 px-6"
+        >
+          <div className="max-w-7xl mx-auto flex flex-wrap justify-center md:justify-between items-center gap-12 opacity-50 grayscale hover:grayscale-0 transition-all duration-700">
+            {[
+              { label: "Protocol Status", value: "Operational", color: "text-green-500" },
+              { label: "Privacy Entropy", value: "High (256-bit)", color: "text-gold" },
+              { label: "Zk-Proof Latency", value: "<1.2s", color: "text-gold" },
+              { label: "Network", value: "Solana Devnet", color: "text-white" }
+            ].map((stat, i) => (
+              <div key={i} className="text-center md:text-left space-y-1">
+                <div className="text-[8px] uppercase tracking-[0.3em] font-bold text-white/40">{stat.label}</div>
+                <div className={`text-sm font-heading italic ${stat.color}`}>{stat.value}</div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
 
-      <footer className="mt-40 pb-20 px-6 border-t border-white/5 max-w-7xl mx-auto pt-10">
+      <footer className="mt-20 pb-20 px-6 border-t border-white/5 max-w-7xl mx-auto pt-10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="font-heading italic text-2xl text-white/20">NexusGift</div>
           <div className="flex gap-10 text-[10px] uppercase tracking-[0.2em] font-bold text-white/30">
@@ -172,5 +193,5 @@ export default function Home() {
     </div>
   );
 }
- 
- 
+
+
