@@ -15,12 +15,11 @@ export default function Home() {
   const [prevConnected, setPrevConnected] = useState(connected);
 
   useEffect(() => {
-    // Only redirect if the wallet transitions from false -> true
-    if (connected && !prevConnected) {
+    // Redirect if wallet is connected (handles both transition and auto-connect)
+    if (connected) {
       router.push('/create');
     }
-    setPrevConnected(connected);
-  }, [connected, prevConnected, router]);
+  }, [connected, router]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -195,4 +194,4 @@ export default function Home() {
 }
 
 
- 
+
