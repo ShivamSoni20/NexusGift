@@ -34,20 +34,19 @@ NexusGift utilizes a **Stateless Cryptographic Engine** to decouple the sender f
 ### Protocol Sequence Diagram
 ```mermaid
 sequenceDiagram
-    participant U as User (Sender)
-    participant SW as ShadowWire Protocol
-    participant E as Production Escrow
-    participant SP as Starpay API
-    participant R as Recipient (Claim)
-
-    U->>SW: 1. Initiate Confidential Transfer (Range Proof)
-    SW->>E: 2. Shielded Funds Deposit
-    E-->>SW: 3. Verify Balance Increase & Proof
-    SW->>SP: 4. Authorize Card Issuance (Verified Intent)
-    SP-->>SP: 5. Generate Virtual Visa/Mastercard
-    SP-->>U: 6. Encrypt Claim Token (Base64 URL)
-    U->>R: 7. Deliver Stateless Link
-    R-->>R: 8. Local Decryption of Credentials
+    participant User
+    participant ShadowWire
+    participant Escrow
+    participant Starpay
+    participant Recipient
+    User->>ShadowWire: 1. Initiate Confidential Transfer
+    ShadowWire->>Escrow: 2. Shielded Funds Deposit
+    Escrow-->>ShadowWire: 3. Verify Balance & Proof
+    ShadowWire->>Starpay: 4. Authorize Card Issuance
+    Starpay-->>Starpay: 5. Generate Virtual Card
+    Starpay-->>User: 6. Encrypt Claim Token
+    User->>Recipient: 7. Deliver Stateless Link
+    Recipient-->>Recipient: 8. Decrypt Credentials
 ```
 
 ---
