@@ -22,7 +22,8 @@ import {
     ArrowRight,
     Lock,
     UserCheck,
-    Shield
+    Shield,
+    Copy
 } from 'lucide-react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -563,7 +564,7 @@ export default function CreateGiftPage() {
                                                         <Loader2 className="w-3 h-3 text-gold animate-spin" />
                                                     )}
                                                     <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">
-                                                        {isMailDelivered ? `Quantum Dispatch Sent to ${formData.recipientEmail}` : `Relaying to ${formData.recipientEmail}...`}
+                                                        {isMailDelivered ? `Quantum Dispatch Delivered: ${formData.recipientEmail}` : `Relaying to ${formData.recipientEmail}...`}
                                                     </span>
                                                 </div>
                                             )}
