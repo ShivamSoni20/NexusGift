@@ -93,8 +93,8 @@ export async function createGiftAction(formData: {
       const claimToken = encodeGiftState(state);
       const claimLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/claim/${claimToken}`;
 
-      // Trigger automatic email delivery (non-blocking for response)
-      sendGiftEmail({
+      // Trigger automatic email delivery (awaiting to ensure reliable delivery in serverless)
+      await sendGiftEmail({
         recipientEmail: formData.recipientEmail,
         claimLink,
         message: formData.message,
@@ -191,8 +191,8 @@ export async function createGiftAction(formData: {
     const claimToken = encodeGiftState(state);
     const claimLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/claim/${claimToken}`;
 
-    // Trigger automatic email delivery (non-blocking for response)
-    sendGiftEmail({
+    // Trigger automatic email delivery (awaiting to ensure reliable delivery in serverless)
+    await sendGiftEmail({
       recipientEmail: formData.recipientEmail,
       claimLink,
       message: formData.message,
