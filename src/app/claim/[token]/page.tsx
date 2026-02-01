@@ -73,7 +73,7 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
     // Simulate API call to Apple/Google Pay provisioning service
     setTimeout(() => {
       setIsProvisioning(false);
-      setCopied('Wallet Provisioning Successful');
+      setCopied('Card Added to Digital Wallet');
       setTimeout(() => setCopied(null), 3000);
     }, 2500);
   };
