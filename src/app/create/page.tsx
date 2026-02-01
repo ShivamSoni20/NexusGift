@@ -207,9 +207,9 @@ export default function CreateGiftPage() {
     };
 
     return (
-        <div className="bg-ash-950 min-h-screen pt-32 pb-20 px-6">
+        <div className="bg-ash-950 min-h-screen pt-24 md:pt-32 pb-20 px-4 md:px-6">
             <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-10 mb-20 border-b border-white/5 pb-10">
+                <div className="flex flex-col md:flex-row justify-between items-center md:items-end gap-10 mb-12 md:mb-20 border-b border-white/5 pb-10 text-center md:text-left">
                     <div className="space-y-4">
                         <div className="inline-flex items-center gap-3 px-3 py-1 rounded-none bg-gold/10 border border-gold/20 text-gold text-[10px] font-bold uppercase tracking-[0.3em]">
                             {connected ? (
@@ -226,12 +226,12 @@ export default function CreateGiftPage() {
                         </p>
                     </div>
 
-                    <div className="flex flex-col items-end gap-4">
+                    <div className="flex flex-col items-center md:items-end gap-4">
                         <div className="flex items-center gap-3">
                             {[1, 2, 3].map(i => (
                                 <div
                                     key={i}
-                                    className={`w-12 h-0.5 transition-all duration-700 ${step >= i ? 'bg-gold' : 'bg-white/10'}`}
+                                    className={`w-8 md:w-12 h-0.5 transition-all duration-700 ${step >= i ? 'bg-gold' : 'bg-white/10'}`}
                                 />
                             ))}
                         </div>
@@ -239,7 +239,7 @@ export default function CreateGiftPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 items-start">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
                     {/* Left: Form */}
                     <div className="lg:col-span-7 space-y-12">
                         <AnimatePresence mode="wait">

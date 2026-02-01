@@ -65,19 +65,19 @@ export default function Home() {
           variants={container}
           initial="hidden"
           animate="show"
-          className="max-w-4xl"
+          className="max-w-4xl mx-auto lg:mx-0 text-center lg:text-left"
         >
           <motion.div variants={item} className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-bold uppercase tracking-widest mb-10">
             <Sparkles className="w-3 h-3" />
             <span>Redefining Privacy on Solana</span>
           </motion.div>
 
-          <motion.h1 variants={item} className="text-6xl md:text-8xl font-heading font-medium tracking-tight leading-[0.9] mb-8 text-white">
+          <motion.h1 variants={item} className="text-5xl sm:text-7xl md:text-8xl font-heading font-medium tracking-tight leading-[0.95] md:leading-[0.9] mb-8 text-white">
             Gifting, <br />
             <span className="italic text-gold italic pr-4">Unobserved.</span>
           </motion.h1>
 
-          <motion.p variants={item} className="text-lg md:text-xl text-white/50 font-body max-w-xl leading-relaxed mb-14">
+          <motion.p variants={item} className="text-base md:text-xl text-white/50 font-body max-w-xl leading-relaxed mb-14 mx-auto lg:mx-0">
             Confidential on-chain payments rendered as spendable virtual cards.
             Zero-knowledge proofs ensure that your generosity remains yours alone.
             <span className="block mt-4 text-gold/60 font-medium italic">Demo: Instant stateless issuance. No collateral required.</span>

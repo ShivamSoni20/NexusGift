@@ -86,9 +86,9 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
   const metadata = gift.encrypted_metadata;
 
   return (
-    <div className="bg-ash-950 min-h-screen pt-32 pb-20 px-6">
+    <div className="bg-ash-950 min-h-screen pt-24 md:pt-32 pb-20 px-4 md:px-6">
       <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-center">
           {/* Left: Card Visual */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -122,13 +122,13 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
           </motion.div>
 
           {/* Right: Claim Actions */}
-          <div className="lg:col-span-6 space-y-12">
+          <div className="lg:col-span-6 space-y-8 md:space-y-12">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-widest border border-amber-500/20">
                 Incoming Private Asset
               </div>
-              <h1 className="text-5xl md:text-6xl font-heading italic text-white leading-tight">Secure <br /> Transmission.</h1>
-              <p className="text-white/40 text-sm font-body leading-relaxed max-w-sm">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-heading italic text-white leading-tight">Secure <br /> Transmission.</h1>
+              <p className="text-white/40 text-sm font-body leading-relaxed max-w-sm mx-auto md:mx-0">
                 A <span className="text-gold italic">simulated</span> confidential transfer was successfully verified on Solana. Decrypt your virtual credentials below.
               </p>
             </div>

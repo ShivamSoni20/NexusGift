@@ -111,20 +111,20 @@ export function DemoWalkthrough({ isOpen, onClose }: { isOpen: boolean; onClose:
                 </div>
 
                 {/* Content Area */}
-                <div className="p-10 min-h-[450px] flex flex-col items-center justify-center relative">
+                <div className="p-6 md:p-10 min-h-[400px] md:min-h-[450px] flex flex-col items-center justify-center relative">
                     <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] contrast-150 pointer-events-none" />
 
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={currentStep}
-                            initial={{ opacity: 0, x: 30 }}
+                            initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -30 }}
+                            exit={{ opacity: 0, x: -20 }}
                             transition={{ duration: 0.6, ease: "easeInOut" }}
-                            className="w-full flex flex-col items-center gap-10"
+                            className="w-full flex flex-col items-center gap-8 md:gap-10"
                         >
                             {/* Step Visualization Area */}
-                            <div className="w-full max-w-md bg-ash-900/50 border border-white/5 p-10 relative overflow-hidden h-64 flex items-center justify-center">
+                            <div className="w-full max-w-md bg-ash-900/50 border border-white/5 p-6 md:p-10 relative overflow-hidden h-56 md:h-64 flex items-center justify-center">
                                 {currentStep === 0 && (
                                     <div className="grid grid-cols-2 gap-px bg-white/5 border border-white/5 w-full">
                                         {[DollarSign, Wallet].map((Icon, i) => (
@@ -222,25 +222,25 @@ export function DemoWalkthrough({ isOpen, onClose }: { isOpen: boolean; onClose:
                 </div>
 
                 {/* Footer Navigation */}
-                <div className="p-8 bg-ash-900 border-t border-white/5 flex items-center justify-between">
+                <div className="p-6 md:p-8 bg-ash-900 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
                     <div className="flex gap-2">
                         {DEMO_STEPS.map((_, i) => (
                             <div
                                 key={i}
-                                className={`h-0.5 transition-all duration-700 ${i === currentStep ? 'w-10 bg-gold' : 'w-2 bg-white/10'}`}
+                                className={`h-0.5 transition-all duration-700 ${i === currentStep ? 'w-8 md:w-10 bg-gold' : 'w-2 bg-white/10'}`}
                             />
                         ))}
                     </div>
-                    <div className="flex items-center gap-8">
+                    <div className="flex items-center gap-6 md:gap-8">
                         <button
                             onClick={() => setCurrentStep(0)}
                             className="text-[9px] font-bold uppercase tracking-[0.3em] text-white/20 hover:text-white transition-all underline underline-offset-8 decoration-white/10"
                         >
-                            Restart Simulation
+                            Restart
                         </button>
                         <button
                             onClick={onClose}
-                            className="group relative px-8 py-3 bg-white text-ash-950 text-[10px] font-bold uppercase tracking-[0.3em] overflow-hidden"
+                            className="group relative px-6 md:px-8 py-3 bg-white text-ash-950 text-[10px] font-bold uppercase tracking-[0.3em] overflow-hidden"
                         >
                             <div className="absolute inset-0 bg-gold translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                             <span className="relative z-10">TERMINATE</span>
