@@ -18,8 +18,9 @@ const bodyFont = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "NexusGift | Private Gifting Refined",
-  description: "Stateless, zero-knowledge gift issuance on Solana.",
+  title: "NexusGift | Protocol-Backed Private Gifting",
+  description: "Stateless, zero-knowledge gift issuance on Solana with instant virtual card conversion.",
+  themeColor: '#d4af37',
 };
 
 export default function RootLayout({
@@ -42,6 +43,6 @@ export default function RootLayout({
     </html>
   );
 }
- 
- 
- 
+
+
+
