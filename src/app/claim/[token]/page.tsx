@@ -271,7 +271,7 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
                       className="py-5 bg-gold text-ash-950 text-[10px] uppercase font-bold tracking-[0.3em] hover:scale-[1.02] transition-all shadow-[0_10px_30px_-10px_rgba(212,175,55,0.3)] flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                       {isProvisioning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
-                      {isProvisioning ? 'Provisioning...' : 'Wallet Integration'}
+                      {isProvisioning ? 'Provisioning...' : 'Add to Apple/Google Wallet'}
                     </button>
                   </div>
                 </motion.div>
