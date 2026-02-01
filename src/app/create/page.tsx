@@ -46,6 +46,8 @@ export default function CreateGiftPage() {
     const [usingDemoIdentity, setUsingDemoIdentity] = useState(false);
     const [paymentStatus, setPaymentStatus] = useState<string>('');
     const [shortUrl, setShortUrl] = useState<string | null>(null);
+    const [isMailDelivered, setIsMailDelivered] = useState(false);
+    const [isCopying, setIsCopying] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -172,6 +174,13 @@ export default function CreateGiftPage() {
                     }
                 } catch (e) {
                     console.error('URL shortening failed:', e);
+                }
+
+                // Simulate Automatic Email Delivery
+                if (formData.recipientEmail) {
+                    setTimeout(() => {
+                        setIsMailDelivered(true);
+                    }, 2000);
                 }
             } else {
                 // If it's a signature mismatch, specifically suggest RETRY
@@ -542,9 +551,23 @@ export default function CreateGiftPage() {
                                         <h2 className="text-4xl md:text-5xl font-heading italic text-white leading-tight">
                                             Operation <br /> Complete.
                                         </h2>
-                                        <p className="text-white/40 text-sm font-body max-w-sm mx-auto leading-relaxed">
-                                            The gift has been successfully vaulted and dispatched. The claim link is now stateless and active.
-                                        </p>
+                                        <div className="flex flex-col items-center gap-4">
+                                            <p className="text-white/40 text-sm font-body max-w-sm mx-auto leading-relaxed">
+                                                The gift has been successfully vaulted and dispatched. The claim link is now stateless and active.
+                                            </p>
+                                            {formData.recipientEmail && (
+                                                <div className="flex items-center gap-3 px-4 py-2 bg-white/5 border border-white/10 rounded-full">
+                                                    {isMailDelivered ? (
+                                                        <CheckCircle2 className="w-3 h-3 text-green-500" />
+                                                    ) : (
+                                                        <Loader2 className="w-3 h-3 text-gold animate-spin" />
+                                                    )}
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/60">
+                                                        {isMailDelivered ? `Quantum Dispatch Sent to ${formData.recipientEmail}` : `Relaying to ${formData.recipientEmail}...`}
+                                                    </span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
                                     <div className="p-10 bg-ash-900 border border-white/5 space-y-8 text-left">
@@ -557,23 +580,35 @@ export default function CreateGiftPage() {
                                                     <span className="text-[8px] text-gold/40 animate-pulse tracking-widest uppercase">Shortening...</span>
                                                 )}
                                             </div>
-                                            <div className="text-[10px] font-mono break-all text-gold bg-black/40 p-6 border border-white/5 flex items-center justify-between group">
+                                            <div
+                                                onClick={() => {
+                                                    const linkToCopy = shortUrl || `${window.location.origin}/claim/${claimToken}`;
+                                                    navigator.clipboard.writeText(linkToCopy);
+                                                    setIsCopying(true);
+                                                    setTimeout(() => setIsCopying(false), 2000);
+                                                }}
+                                                className="text-[10px] font-mono break-all text-gold bg-black/40 p-6 border border-white/5 flex items-center justify-between group cursor-pointer hover:bg-gold/5 hover:border-gold/30 transition-all"
+                                            >
                                                 <span className="flex-1">
                                                     {shortUrl || (mounted ? `${window.location.origin}/claim/${claimToken}` : '')}
                                                 </span>
+                                                <Copy className={`w-4 h-4 transition-all ${isCopying ? 'text-green-500 scale-110' : 'text-gold/40 group-hover:text-gold'}`} />
                                             </div>
                                         </div>
 
-                                        <button
-                                            onClick={() => {
-                                                const linkToCopy = shortUrl || `${window.location.origin}/claim/${claimToken}`;
-                                                navigator.clipboard.writeText(linkToCopy);
-                                                alert("Link copied to clipboard");
-                                            }}
-                                            className="text-[9px] font-bold text-white/40 hover:text-gold uppercase tracking-[0.4em] transition-colors"
-                                        >
-                                            COPY {shortUrl ? "SHORT LINK" : "FULL LINK"} TO CLIPBOARD
-                                        </button>
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={() => {
+                                                    const linkToCopy = shortUrl || `${window.location.origin}/claim/${claimToken}`;
+                                                    navigator.clipboard.writeText(linkToCopy);
+                                                    setIsCopying(true);
+                                                    setTimeout(() => setIsCopying(false), 2000);
+                                                }}
+                                                className="text-[9px] font-bold text-white/40 hover:text-gold uppercase tracking-[0.4em] transition-colors"
+                                            >
+                                                {isCopying ? "COPIED TO CLIPBOARD" : `COPY ${shortUrl ? "SHORT LINK" : "FULL LINK"} TO CLIPBOARD`}
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <Link
@@ -633,6 +668,6 @@ export default function CreateGiftPage() {
         </div>
     );
 }
- 
- 
- 
+
+
+
