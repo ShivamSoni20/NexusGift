@@ -12,12 +12,15 @@ export default function Home() {
   const [isDemoOpen, setIsDemoOpen] = useState(false);
   const { connected } = useWallet();
   const router = useRouter();
+  const [prevConnected, setPrevConnected] = useState(connected);
 
   useEffect(() => {
-    if (connected) {
+    // Only redirect if the wallet transitions from false -> true
+    if (connected && !prevConnected) {
       router.push('/create');
     }
-  }, [connected, router]);
+    setPrevConnected(connected);
+  }, [connected, prevConnected, router]);
 
   const container = {
     hidden: { opacity: 0 },
