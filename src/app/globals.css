@@ -11,5 +11,33 @@ body {
   color: var(--foreground);
   background: var(--background);
 }
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .bg-ash-950, .bg-ash-900, .bg-black\/40 {
+    background: white !important;
+    border-color: #eee !important;
+  }
+  .text-white\/40, .text-white\/20, .text-white\/50, .text-white\/30 {
+    color: #666 !important;
+  }
+  .text-white {
+    color: black !important;
+  }
+  button, .fixed, .pt-24 {
+    display: none !important;
+  }
+  .max-w-6xl {
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+  .grid {
+    display: block !important;
+  }
+}
+ 
  
  

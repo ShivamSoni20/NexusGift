@@ -25,6 +25,8 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
   const [isClaiming, setIsClaiming] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
+  const [isProvisioning, setIsProvisioning] = useState(false);
+  const [isArchiving, setIsArchiving] = useState(false);
 
   useEffect(() => {
     async function loadGift() {
@@ -55,6 +57,25 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
     navigator.clipboard.writeText(text);
     setCopied(label);
     setTimeout(() => setCopied(null), 2000);
+  };
+
+  const handleArchivePDF = () => {
+    setIsArchiving(true);
+    // Give state time to update before triggering print
+    setTimeout(() => {
+      window.print();
+      setIsArchiving(false);
+    }, 500);
+  };
+
+  const handleWalletIntegration = () => {
+    setIsProvisioning(true);
+    // Simulate API call to Apple/Google Pay provisioning service
+    setTimeout(() => {
+      setIsProvisioning(false);
+      setCopied('Wallet Provisioning Successful');
+      setTimeout(() => setCopied(null), 3000);
+    }, 2500);
   };
 
   if (loading) {
@@ -236,11 +257,21 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
                   </div>
 
                   <div className="grid grid-cols-2 gap-6">
-                    <button className="py-5 border border-white/10 text-white/40 text-[10px] uppercase font-bold tracking-[0.3em] hover:bg-white/5 transition-all">
-                      Archive to PDF
+                    <button
+                      onClick={handleArchivePDF}
+                      disabled={isArchiving}
+                      className="py-5 border border-white/10 text-white/40 text-[10px] uppercase font-bold tracking-[0.3em] hover:bg-white/5 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {isArchiving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                      {isArchiving ? 'Generating...' : 'Archive to PDF'}
                     </button>
-                    <button className="py-5 bg-gold text-ash-950 text-[10px] uppercase font-bold tracking-[0.3em] hover:scale-[1.02] transition-all shadow-[0_10px_30px_-10px_rgba(212,175,55,0.3)]">
-                      Wallet Integration
+                    <button
+                      onClick={handleWalletIntegration}
+                      disabled={isProvisioning}
+                      className="py-5 bg-gold text-ash-950 text-[10px] uppercase font-bold tracking-[0.3em] hover:scale-[1.02] transition-all shadow-[0_10px_30px_-10px_rgba(212,175,55,0.3)] flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {isProvisioning ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                      {isProvisioning ? 'Provisioning...' : 'Wallet Integration'}
                     </button>
                   </div>
                 </motion.div>
@@ -252,4 +283,4 @@ export default function ClaimGiftPage({ params }: { params: { token: string } })
     </div>
   );
 }
- 
+
