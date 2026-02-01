@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Shield, Lock, CreditCard, Send, Zap, Play, ArrowRight, Sparkles } from 'lucide-react';
 import { DemoWalkthrough } from '@/components/DemoWalkthrough';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export default function Home() {
   const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const { connected } = useWallet();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (connected) {
+      router.push('/create');
+    }
+  }, [connected, router]);
 
   const container = {
     hidden: { opacity: 0 },
@@ -95,28 +105,31 @@ export default function Home() {
         </motion.div>
 
         {/* Dynamic Feature Grid */}
-        <div id="features" className="mt-40 grid grid-cols-1 md:grid-cols-12 gap-1 px-4 sm:px-0">
+        <div id="features" className="mt-40 grid grid-cols-1 md:grid-cols-2 gap-1 px-4 sm:px-0">
           {[
             {
               icon: Shield,
               title: "Vaulted Identity",
               desc: "Mock ZK-proofs mask sender origin and gift value during transmission.",
-              col: "md:col-span-5",
               delay: 0.1
             },
             {
               icon: CreditCard,
               title: "Ephemeral Issuance",
               desc: "Stateless cards generated on-demand without backend persistence.",
-              col: "md:col-span-7",
               delay: 0.2
+            },
+            {
+              icon: Zap,
+              title: "Global Settlement",
+              desc: "Spend anywhere Visa/Mastercard are accepted via instant virtual card conversion.",
+              delay: 0.3
             },
             {
               icon: Lock,
               title: "Absolute Zero",
               desc: "No database. No logs. No trace. Only the recipient holds the key.",
-              col: "md:col-span-12",
-              delay: 0.3
+              delay: 0.4
             }
           ].map((feature, i) => (
             <motion.div
@@ -125,7 +138,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ delay: feature.delay, duration: 0.8 }}
               viewport={{ once: true }}
-              className={`${feature.col} p-10 bg-ash-900/50 border border-white/5 hover:border-gold/30 transition-all duration-700 group relative overflow-hidden`}
+              className={`p-10 bg-ash-900/50 border border-white/5 hover:border-gold/30 transition-all duration-700 group relative overflow-hidden`}
             >
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                 <feature.icon className="w-24 h-24 text-white" />
