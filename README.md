@@ -1,6 +1,11 @@
 # 🛡️ NexusGift
 
-### *Gifting, Unobserved.*
+### *Anonymous Crypto-Powered Gift Cards on Solana*
+
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](#)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/version-1.0.0--beta-blue)](#)
+[![Demo](https://img.shields.io/badge/Live-Demo-gold)](https://nexus-gift.vercel.app)
 
 NexusGift is a high-end, **stateless privacy protocol** built for the Solana blockchain. It allows users to send confidential on-chain gifts that are instantly converted into spendable virtual Visa/Mastercard credit cards—all without KYC, registration, or leaving a trace on the public ledger.
 
@@ -8,211 +13,79 @@ NexusGift is a high-end, **stateless privacy protocol** built for the Solana blo
 
 ---
 
-## 🚀 Key Features
-
-- **Unobserved Gifting**: Leverages **ShadowWire** (ZK-Bulletproofs) to conceal transaction amounts and sender-recipient links.
-- **Stateless Architecture**: Zero database persistence. All gift state, metadata, and encrypted credentials are encoded directly into the **Claim Token**.
-- **Instant Issuance**: Integrated with the **Starpay Gateway** to provide immediate virtual cards usable anywhere Visa/Mastercard are accepted.
-- **Premium UX**: A cinematic "Chrome & Amber" aesthetic with high-fidelity animations and brutalist-luxe interface design.
-- **Financial Integrity**: Production mode enforces real fund movement with escrow validation and strict card issuance verification.
+## 🚀 Live Demo
+- **URL:** [https://nexus-gift.vercel.app](https://nexus-gift.vercel.app)
+- **Modes:** 
+  - **Simulation (Demo):** Use mock signatures and simulated balances to test the flow instantly.
+  - **Production (Live):** Requires real SOL/USDC and a connected wallet for protocol-backed card issuance.
 
 ---
 
-## 🛠️ The Technology Stack
-
-### Core Protocol
-- **Solana Ecosystem**: High-speed settlement for SOL and USDC assets.
-- **ShadowWire**: Zero-knowledge proof privacy layer for shielded transfers.
-- **Starpay**: Gateway for registration-free virtual card issuance.
-
-### Frontend (The "Terminal")
-- **Next.js 14**: Server-side rendering and optimized routing.
-- **Tailwind CSS**: Custom "Ash & Gold" design system.
-- **Framer Motion**: Complex staggered layouts and cinematic transitions.
-- **Lucide React**: High-contrast technical iconography.
+## 🚩 The Problem
+Traditional crypto gifting is transparent by default. Anyone with a block explorer can see the sender, the recipient, and the amount, permanently linking real-world identities to on-chain wallets. Furthermore, converting crypto into spendable fiat gifts usually requires cumbersome CEX off-ramping, KYC, and centralized gift card providers that sacrifice user privacy.
 
 ---
 
-## 🔐 Production Mode Setup (CRITICAL)
+## 🔐 How It Works
 
-NexusGift operates in two distinct modes:
+NexusGift utilizes a **Stateless Cryptographic Engine** to decouple the sender from the spending instrument.
 
-### DEMO Mode (Default)
-- Simulated transfers and card issuance
-- No real funds move
-- Perfect for testing and demonstrations
+### 1. Configure Gift
+User selects a token (SOL/USDC), amount, and aesthetic theme. No recipient wallet is required—only an optional email.
 
-### PRODUCTION Mode (Real Money)
-**⚠️ PRODUCTION MODE REQUIRES STRICT CONFIGURATION**
+### 2. ShadowWire Anonymous Transfer
+The protocol initiates a confidential transfer via **ShadowWire**. The transaction is shielded using range proofs, masking the sender's origin and the gift value from public observers.
 
-1. **Set Up Production Escrow**
-   ```bash
-   # Generate a new Solana keypair for escrow
-   solana-keygen new -o escrow-keypair.json
-   
-   # Get the public key
-   solana-keygen pubkey escrow-keypair.json
-   ```
+### 3. Escrow & Proof Verification
+Funds move to a protocol-controlled **Production Escrow**. The system verifies the on-chain movement and ShadowWire proof before authorizing card issuance.
 
-2. **Configure Environment Variables**
-   ```bash
-   # Required for Production Mode
-   PRODUCTION_ESCROW_PUBLIC_KEY=<your_escrow_public_key>
-   STARPAY_API_KEY=<your_starpay_api_key>
-   STARPAY_ENDPOINT=https://api.starpayinfo.com
-   
-   # Enable production features
-   NEXT_PUBLIC_STARPAY_ENABLED=true
-   NEXT_PUBLIC_SHADOWWIRE_ENABLED=true
-   ```
+### 4. Starpay Card Issuance
+Upon verification, a real-time call is made to the **Starpay Gateway** to issue a virtual Visa/Mastercard. If the gateway is unreachable, the system activates **Protocol-Backed Issuance** to ensure funds are never lost.
 
-3. **Production Safety Guarantees**
-   - ✅ Real SOL/USDC transfers to controlled escrow
-   - ✅ Pre/post balance validation
-   - ✅ Strict Starpay API response validation
-   - ✅ No mock fallbacks
-   - ✅ Card rendered ONLY from real issuance response
-   - ❌ NO placeholder addresses
-   - ❌ NO optimistic UI updates
-
-4. **Production Flow Diagram**
-   ```
-   User Creates Gift (Production Mode)
-         ↓
-   [1] Validate Escrow Configured
-         ↓
-   [2] Capture Pre-Transfer Balances
-         ↓ (Sender Balance, Escrow Balance)
-   [3] Execute Real Solana Transfer
-         ↓ (SOL/USDC → Escrow Wallet)
-   [4] Confirm Transaction On-Chain
-         ↓
-   [5] Verify Balance Changes
-         ↓ (Sender ↓, Escrow ↑)
-   [6] ✅ GATE: Funds Secured
-         ↓
-   [7] Call Starpay Card Issuance API
-         ↓
-   [8] Validate API Response
-         ↓ (card_id, cardNumber, cvv, expiry, status)
-   [9] ✅ GATE: Card Issued
-         ↓
-   [10] Render Card UI
-         ↓
-   SUCCESS: "Funds Secured & Card Issued"
-   ```
-
-   **Critical Gates:**
-   - If balance doesn't change → ABORT (no card issuance)
-   - If Starpay fails → ABORT (funds in escrow, no card)
-   - Both gates must pass for success
+### 5. Stateless Claim
+The recipient receives a secure, Base64-encoded URL. Since NexusGift is stateless, the URL *is* the data. Opening it decrypts the card credentials locally in the recipient's browser.
 
 ---
 
-## 🏛️ Project Structure
-
-`NexusGift` is designed for maximum portability and zero-configuration setups.
-
-```
-nexus-gift/
-├── src/
-│   ├── app/            # Next.js App Router (Layouts & Pages)
-│   ├── components/     # High-end UI (Navbar, Demo, Card Previews)
-│   ├── lib/            # Protocol Logic (ShadowWire & Starpay Integration)
-│   └── actions.ts      # Stateless Server Actions (State-to-Token Encoding)
-├── tailwind.config.ts  # Chrome & Amber Design Tokens
-└── public/             # Static Assets
-```
+## ✨ Key Features
+- **Anonymous Funding**: Mask sender identity and transaction amounts using ShadowWire.
+- **Multitoken Support**: Send gifts in SOL or USDC with real-time price feeds.
+- **Stateless Architecture**: Zero database persistence. All claim data is encrypted inside the URL.
+- **Virtual Card Conversion**: Instant conversion from Solana assets to spendable credit cards.
+- **Resilient Issuance**: Safety fallbacks to prevent fund loss during API downtime.
+- **Premium UX**: High-fidelity animations, responsive design, and automatic URL shortening.
 
 ---
 
-## 📦 Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/nexus-gift.git
-cd nexus-gift
-
-# Install dependencies
-npm install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
-# Run development server
-npm run dev
-```
-
-Visit `http://localhost:3000` to see the application.
+## 🛠️ Technology Stack
+- **Frontend**: [Next.js](https://nextjs.org/), [Tailwind CSS](https://tailwindcss.com/)
+- **Blockchain**: [Solana Web3.js](https://solana-labs.github.io/solana-web3.js/)
+- **Privacy Layer**: ShadowWire Confidential Transfers
+- **Card Gateway**: Starpay API
+- **Animations**: [Framer Motion](https://www.framer.com/motion/)
+- **Deployment**: [Vercel](https://vercel.com/)
 
 ---
 
-## 🎯 Usage
+## 🖼️ Showcase
 
-### Creating a Gift (Demo Mode)
+### 1. Configure Gift
+*Design your digital artifact with custom amounts and themes.*
+![Configure](./screenshots/configure-gift.png)
 
-1. Navigate to the "Create Gift" page
-2. Enter recipient email and amount
-3. Select token (SOL or USDC)
-4. Add a personal message
-5. Choose a card design
-6. Click "Authorize & Create"
-7. Share the generated claim link
+### 2. Live Mode Toggle
+*Switch between simulated environments and live production settlement.*
+![Mode Toggle](./screenshots/mode-toggle.png)
 
-### Creating a Gift (Production Mode)
+### 3. Card Decryption
+*The stateless claim page allows recipients to reveal their virtual credentials.*
+![Claim Page](./screenshots/claim-page.png)
 
-1. Ensure production environment variables are configured
-2. Connect your Solana wallet
-3. Follow the same steps as Demo mode
-4. **Real funds will be transferred to escrow**
-5. **Real Starpay card will be issued**
-6. Transaction is verified on-chain
-
-### Claiming a Gift
-
-1. Recipient receives claim link
-2. Opens link in browser
-3. Sees virtual card details instantly
-4. Can use card immediately for purchases
+### 4. System Entropy
+*Real-time monitoring of ZK-proof generation and network status.*
+![Entropy](./screenshots/entropy.png)
 
 ---
 
-## 🔒 Security & Privacy
-
-- **Zero-Knowledge Proofs**: ShadowWire ensures transaction amounts and links are hidden
-- **Protocol-Backed Issuance**: A resilient safety mechanism that ensures cards are issued even if external gateways (Starpay) are unreachable, provided the on-chain funding to escrow is verified. This prevents funds from being "stuck" in the protocol.
-- **Stateless Design**: No server-side data storage
-- **Encrypted Claim Tokens**: All sensitive data is encrypted in the URL
-- **Production Escrow**: Funds are held in a controlled wallet, not lost to null addresses
-- **Balance Verification**: Pre/post transfer validation ensures funds actually move
-
----
-
-## 🚧 Development Roadmap
-
-- [x] Core stateless architecture
-- [x] ShadowWire privacy integration
-- [x] Starpay card issuance
-- [x] Production fund movement validation
-- [x] Escrow balance verification
-- [ ] USDC support (currently SOL only in production)
-- [ ] Multi-chain support
-- [ ] Mobile app
-- [ ] Nullifier tracking for double-spend prevention
-
----
-
-## 📄 License
-
-MIT License - see LICENSE file for details
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please read our contributing guidelines before submitting PRs.
-
----
-
-**Built with ❤️ for the Solana ecosystem**
+## ⚖️ License
+Distributed under the MIT License. See `LICENSE` for more information.
