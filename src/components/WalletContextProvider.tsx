@@ -6,8 +6,6 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { clusterApiUrl } from '@solana/web3.js';
 import {
-    PhantomWalletAdapter,
-    SolflareWalletAdapter,
     CoinbaseWalletAdapter,
     TorusWalletAdapter,
     LedgerWalletAdapter,
@@ -31,12 +29,12 @@ export const WalletContextProvider: FC<{ children: ReactNode }> = ({ children })
         return rpc;
     }, [network]);
 
+    // Standard wallets (Phantom, Solflare, etc.) are discovered automatically via the Wallet Standard.
+    // We only need to provide adapters for wallets that do not yet support the standard.
     const wallets = useMemo(() => [
-        new PhantomWalletAdapter(),
-        new SolflareWalletAdapter(),
-        new CoinbaseWalletAdapter(),
-        new TorusWalletAdapter(),
         new LedgerWalletAdapter(),
+        new TorusWalletAdapter(),
+        new CoinbaseWalletAdapter(),
         new TrustWalletAdapter(),
     ], []);
 
